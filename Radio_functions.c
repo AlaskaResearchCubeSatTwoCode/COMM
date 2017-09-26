@@ -17,7 +17,7 @@ int Tx_Flag;
 //***********************************************************************************************************************************************
 void radio_SPI_setup(void){
 //PORT MAP THE UCA3 TO PORT 3.5,6,7 
-//Code was copid from the SD lib code. SD lib code is port mapped for any communication periferial. 
+//Code was copid from the SD lib code. SD lib code is port mapped for any communication periferal. 
 //I changed the MCC to Radio and applied the Radio SPI lines to the #defines in the Radio_functions.h file
 //We could try to set this up like SD card so that radios can be accessed on any of the SPI perifials and will still work. 
   //unlock registers

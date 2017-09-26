@@ -702,7 +702,7 @@ void beacon_tick(void) __interrupt[TIMER2_A0_VECTOR]{
         P7OUT^=BIT6; //toggle bit 5
         if (beacon_on){
           //ctl_events_set_clear(&COMM_evt,COMM_EVT_CC2500_1_TX_START,0);     //Send to Radio to transmit mode
-          ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_TX_START,0);     //Send to Radio to transmit mode
+          ctl_events_set_clear(&COMM_evt,COMM_EVT_CC2500_1_TX_START,0);     //Send to Radio to transmit mode
         }
         sec=0;  // reset 
       }

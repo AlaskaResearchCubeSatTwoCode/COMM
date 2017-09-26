@@ -283,7 +283,7 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]",helpCmd},
                    {"beacon_flag","Toggles the COMM beacon \"hello\" packet on or off.\n\rCurrently targeting the CC2500_1",beacon_flagCmd},
                    {"temp","grabbing temp data",tempCmd},
                    {"test","for testing things in code",TestCmd},
-                  // ARC_COMMANDS,CTL_COMMANDS, ERROR_COMMANDS
+                   ARC_COMMANDS,//CTL_COMMANDS, ERROR_COMMANDS,
                    //end of list
                    {NULL,NULL,NULL}};
 
