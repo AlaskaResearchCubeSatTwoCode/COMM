@@ -271,6 +271,19 @@ int TestCmd(char **argv,unsigned short argc){
   return 0;
 }
 
+int BurnCmd(char **argv, unsigned short argc){
+
+  printf("Burn command initiated\r\n");
+  P6DIR |= BIT2 | BIT3;
+  P6OUT |= BIT2 | BIT3;
+  __delay_cycles(16000000);              
+  P6OUT &= ~(BIT2 |BIT3);
+  P6DIR &= ~BIT2 | ~BIT3;
+  printf("Burn command finished\r\n");
+
+  return 0;
+}
+
 //table of commands with help
 const CMD_SPEC cmd_tbl[]={{"help"," [command]",helpCmd},
                    {"status","",status_Cmd},
@@ -283,6 +296,7 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]",helpCmd},
                    {"beacon_flag","Toggles the COMM beacon \"hello\" packet on or off.\n\rCurrently targeting the CC2500_1",beacon_flagCmd},
                    {"temp","grabbing temp data",tempCmd},
                    {"test","for testing things in code",TestCmd},
+                   {"burn", "Pulse the burn line", BurnCmd},
                    ARC_COMMANDS,//CTL_COMMANDS, ERROR_COMMANDS,
                    //end of list
                    {NULL,NULL,NULL}};
