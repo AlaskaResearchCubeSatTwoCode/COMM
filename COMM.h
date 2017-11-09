@@ -12,6 +12,7 @@ typedef int BOOL;
 #define CC2500_1_GDO0_IV    P1IV_P1IFG3  // interrupt on P1.2
 #define CC2500_1_GDO2_IV    P1IV_P1IFG4  // interrupt on P1.3
 
+#define BURN_DELAY = 16000000;// TODO set this to something that makes sense ! 
 //events for COMM task
 extern CTL_EVENT_SET_t COMM_evt;
 extern short beacon_on, beacon_flag;

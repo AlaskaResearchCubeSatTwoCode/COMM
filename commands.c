@@ -276,13 +276,42 @@ int BurnCmd(char **argv, unsigned short argc){
   printf("Burn command initiated\r\n");
   P6DIR |= BIT2 | BIT3;
   P6OUT |= BIT2 | BIT3;
-  __delay_cycles(16000000);              
+  //__delay_cycles(BURN_DELAY);              
   P6OUT &= ~(BIT2 |BIT3);
-  P6DIR &= ~BIT2 | ~BIT3;
+  P6DIR &= ~(BIT2|BIT3);
   printf("Burn command finished\r\n");
 
   return 0;
 }
+
+//TODO This is a test  command to test code path.
+int CommCmd(char **argv, unsigned short argc)
+{
+int i;
+char CommCommand[] = {0x69, 0x19, 0x66, 0x29, 0x05, 0x02, 0x06, 0x75, 0x19, 0x76, 0x61, 0x0D, 0x21, 0x86, 0xC0, 0x0F, 0xC8, 0x00, 0x00, 0x00, 0x00};
+//char RFON[]={0x69, 0x19, 0x66, 0x29, 0x05, 0x02, 0x06, 0x75, 0x19, 0x76, 0x61, 0x0D, 0x21, 0x86, 0xC0, 0x0F, 0xC8, 0x00, 0xFF, 0x70, 0xD9 }; // RFON
+char RFOFF[]={0x69, 0x19, 0x66, 0x29, 0x05, 0x02, 0x06, 0x75, 0x19, 0x76, 0x61, 0x0D, 0x21, 0x86, 0xC0, 0x0F, 0xC8, 0x00, 0x00, 0x6E, 0x29 }; // RFOFF
+
+
+if(!strcmp(argv[1],"RF_ON"))
+{
+ CommCommand[18] = 0xFF;
+ CommCommand[19] = 0x70;
+ CommCommand[20] = 0xD9;
+}
+
+ RxBuffer_Len = sizeof(CommCommand);
+
+    for(i=0; i<RxBuffer_Len; i++)
+    {
+    RxBuffer[i] = CommCommand[i];
+    }
+
+comm_evt_gs_decode();
+
+}
+
+
 
 //table of commands with help
 const CMD_SPEC cmd_tbl[]={{"help"," [command]",helpCmd},
@@ -297,6 +326,7 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]",helpCmd},
                    {"temp","grabbing temp data",tempCmd},
                    {"test","for testing things in code",TestCmd},
                    {"burn", "Pulse the burn line", BurnCmd},
+                   {"CommCmd", "Test Comm internal Comands", CommCmd},
                    ARC_COMMANDS,//CTL_COMMANDS, ERROR_COMMANDS,
                    //end of list
                    {NULL,NULL,NULL}};
