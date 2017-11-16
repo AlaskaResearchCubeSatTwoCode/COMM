@@ -37,8 +37,11 @@ int comm_evt_gs_decode(void){// this is called from RX_event!
         CRC_CCITT_Generator(RxBuffer, &RxBuffer_Len);
         if((FCS[0] == RxBuffer[RxBuffer_Len-2]) && (FCS[1] == RxBuffer[RxBuffer_Len-1])){
         printf("CRC checked\r\n");
-        } else{ return ERR_BAD_COMM_CRC; }
+        } 
+        else
+        { return ERR_BAD_COMM_CRC;
         printf("CRC bad\r\n");
+        }
     //GS command to COMM
 
     status.Num_CMD++; //Increment number of commands received
