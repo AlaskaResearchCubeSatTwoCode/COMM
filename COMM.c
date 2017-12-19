@@ -13,7 +13,7 @@
 
 
 COMM_STAT status;
-CTL_EVENT_SET_t COMM_evt;
+CTL_EVENT_SET_t COMM_evt,COMM_evt2;
 
 short beacon_on=0, beacon_flag=0,data_mode=TX_DATA_BUFFER;
 unsigned char data_seed, IMG_Blk, Tx1Buffer[600], RxBuffer[600], RxTemp[30];
@@ -144,6 +144,46 @@ int SUB_parseCmd(unsigned char src, unsigned char cmd, unsigned char *dat, unsig
   }
   return ERR_UNKNOWN_CMD;
 }
+//************************************************************************** COMM Events two *******************************************************************************
+// Bec. COMM Events filled up ! 
+//**************************************************************************************************************************************************************************
+void COMM_events2(void *p) __toplevel{
+  unsigned int e;
+  
+// code for burn and RF insertion delay 
+//NOTE this must be uncommented for flight code !!!!!
+//int BUS_set_alarm(unsigned char num,ticker time,CTL_EVENT_SET_t *e,CTL_EVENT_SET_t event);
+  BUS_set_alarm(BUS_ALARM_0,get_ticker_time()+ANT_DEPLOY_TIME,&COMM_evt2,COMM_EVT2_RF_EN);
+  BUS_set_alarm(BUS_ALARM_1,get_ticker_time()+RF_ON_TIME,&COMM_evt2,COMM_EVT2_BURN_DELAY);
+
+ ctl_events_init(&COMM_evt2,0);     
+
+//endless loop
+    for(;;){
+      //wait for events
+      e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&COMM_evt2,COMM_EVT2_ALL,CTL_TIMEOUT_NONE,0);
+
+      //******************************************************************************************* COMM_EVT_STATUS_REQ
+      if(e&COMM_EVT2_RF_EN){
+      // set beacon flag on here. when beacon flag off we can still RX but no TX
+      P7OUT |= BIT0; // RF enabled indicator LED
+      printf("COMM_EVT2_RF_EN\r\n");
+
+   }
+     else if(e&COMM_EVT2_BURN_DELAY ){
+      P7OUT |= BIT1;  // Antenna burn indicator LED on
+      printf("COMM_EVT2_BURN_DELAY\r\n");
+      /*  // send CDH I2C command for burn
+      if(err = 0){
+        P7OUT ^= BIT1;  // Toggle antenna burn indicator LED off at the end of burn 
+
+      }*/
+
+      
+   }
+  }
+}
+
 
 //************************************************************************** COMM Events *******************************************************************************
 //
@@ -151,6 +191,7 @@ int SUB_parseCmd(unsigned char src, unsigned char cmd, unsigned char *dat, unsig
 void COMM_events(void *p) __toplevel{
   unsigned int e, count;
   int i, resp; 
+
 // NOTE should we clear flags or does rest do this ? 
     Reset_Radio(CC2500_1);                  // Reset Radios/initialize status
     Reset_Radio(CC1101);                    // Reset Radios/initialize status
