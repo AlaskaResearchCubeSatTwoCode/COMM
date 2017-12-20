@@ -2,7 +2,7 @@
 #define __Radio_functions_H
 
 
-//Radio Pins for SPI UCB1 P4.0
+//Radio Pins for SPI UCB1 P4.0 ie. the output/physical connections on the board
 #define RADIO_PIN_SIMO BIT2 
 #define RADIO_PIN_SOMI BIT1 
 #define RADIO_PIN_SCK  BIT0 
@@ -12,10 +12,10 @@
 #define RADIO_PMAP_SOMI     P4MAP1
 #define RADIO_PMAP_UCLK     P4MAP0
 
-//port mapping values
-#define RADIO_PM_SIMO     PM_UCB1SIMO
-#define RADIO_PM_SOMI     PM_UCB1SOMI
-#define RADIO_PM_UCLK     PM_UCB1CLK
+//port mapping values ie. the input of the MSP
+#define RADIO_PM_SIMO     PM_UCA3SIMO
+#define RADIO_PM_SOMI     PM_UCA3SOMI
+#define RADIO_PM_UCLK     PM_UCA3CLK
 
 #define RADIO_PINS_SPI (RADIO_PIN_SOMI | RADIO_PIN_SIMO | RADIO_PIN_SCK)
 
