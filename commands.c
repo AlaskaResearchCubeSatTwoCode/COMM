@@ -285,66 +285,85 @@ int BurnCmd(char **argv, unsigned short argc){
 }
 
 //TODO This is a test  command to test code path.
-int CommCmd(char **argv, unsigned short argc)
+int CMD(char **argv, unsigned short argc)
 {
 int i;
 char CommCommand[] = {0x69, 0x19, 0x66, 0x29, 0x05, 0x02, 0x06, 0x75, 0x19, 0x76, 0x61, 0x0D, 0x21, 0x86, 0xC0, 0x0F, 0xC8, 0x00, 0x00, 0x00, 0x00};
+char IMGCommand[] = {0x69, 0x19, 0x66, 0x29, 0x05, 0x02, 0x06, 0x75, 0x19, 0x76, 0x61, 0x0D, 0x21, 0x86, 0xC0, 0x0F, 0x28, 0x00, 0x00, 0x00, 0x00};
+char LEDLCommand[] = {0x69, 0x19, 0x66, 0x29, 0x05, 0x02, 0x06, 0x75, 0x19, 0x76, 0x61, 0x0D, 0x21, 0x86, 0xC0, 0x0F, 0x88, 0x00, 0x00, 0x00, 0x00};
 
-
-if(!strcmp(argv[1],"RF_ON"))
+if(!strcmp(argv[1],"COMM"))
 {
- CommCommand[18] = 0xFF;
- CommCommand[19] = 0x70;
- CommCommand[20] = 0xD9;
+  if(!strcmp(argv[2],"RF_ON"))
+  {
+   CommCommand[18] = 0xFF;
+   CommCommand[19] = 0x70;
+   CommCommand[20] = 0xD9;
+  }
+  else if(!strcmp(argv[2],"RF_OFF"))
+  {
+  CommCommand[18] = 0x00;
+  CommCommand[19] = 0x6E;
+  CommCommand[20] = 0x29;
+  }
+  else if(!strcmp(argv[2],"COMM_BEACON_STATUS"))
+  {
+  CommCommand[18] = 0xF0;
+  CommCommand[19] = 0x81;
+  CommCommand[20] = 0x36;
+  }
+  else if(!strcmp(argv[2],"COMM_BEACON_HELLO"))
+  {
+  CommCommand[18] = 0x0F;
+  CommCommand[19] = 0x9F;
+  CommCommand[20] = 0xC6;
+  }
+  else if(!strcmp(argv[2],"COMM_RESET_CDH"))
+  {
+  CommCommand[18] = 0xCC;
+  CommCommand[19] = 0x76;
+  CommCommand[20] = 0xE9;
+  }
+
+  RxBuffer_Len = sizeof(CommCommand);
+  for(i=0; i<RxBuffer_Len; i++)
+  {
+  RxBuffer[i] = CommCommand[i];
+  }
+
 }
-else if(!strcmp(argv[1],"RF_OFF"))
+else if (!strcmp(argv[1],"IMG"))
 {
-CommCommand[18] = 0x00;
-CommCommand[19] = 0x6E;
-CommCommand[20] = 0x29;
+  if(!strcmp(argv[2],"IMG_CLEARPIC"))
+  {
+  IMGCommand[18] = 0x72;
+  IMGCommand[19] = 0x90;
+  IMGCommand[20] = 0xCD;
+  }
+
+ RxBuffer_Len = sizeof(IMGCommand);
+
+  for(i=0; i<RxBuffer_Len; i++)
+  {
+  RxBuffer[i] = IMGCommand[i];
+  }
 }
-else if(!strcmp(argv[1],"COMM_BEACON_STATUS"))
+else if (!strcmp(argv[1],"LEDL"))
 {
-CommCommand[18] = 0xF0;
-CommCommand[19] = 0x81;
-CommCommand[20] = 0x36;
+  if(!strcmp(argv[2],"LEDL_LOADDATA"))
+  {
+  LEDLCommand[18] = 0xAA;
+  LEDLCommand[19] = 0x67;
+  LEDLCommand[20] = 0x24;
+  }
+
+ RxBuffer_Len = sizeof(LEDLCommand);
+
+  for(i=0; i<RxBuffer_Len; i++)
+  {
+  RxBuffer[i] = LEDLCommand[i];
+  }
 }
-else if(!strcmp(argv[1],"COMM_BEACON_HELLO"))
-{
-CommCommand[18] = 0x0F;
-CommCommand[19] = 0x9F;
-CommCommand[20] = 0xC6;
-}
-else if(!strcmp(argv[1],"COMM_RESET_CDH"))
-{
-CommCommand[18] = 0xCC;
-CommCommand[19] = 0x76;
-CommCommand[20] = 0xE9;
-}
-else if(!strcmp(argv[1],"IMG_CLEARPIC"))
-{
-IMGCommand[18] = 0x72;
-IMGCommand[19] = 0x90;
-IMGCommand[20] = 0xCD;
-
-}
-
-    /*
-    RxBuffer_Len = sizeof(CommCommand);
-
-    for(i=0; i<RxBuffer_Len; i++)
-    {
-    RxBuffer[i] = CommCommand[i];
-    }
-
-    */
-
-    RxBuffer_Len = 21;
-
-    for(i=0; i<RxBuffer_Len; i++)
-    {
-    RxBuffer[i] = IMGCommand[i];
-    }
 
 comm_evt_gs_decode();
 
@@ -365,7 +384,7 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]",helpCmd},
                    {"temp","grabbing temp data",tempCmd},
                    {"test","for testing things in code",TestCmd},
                    {"burn", "Pulse the burn line", BurnCmd},
-                   {"CommCmd", "Test Comm internal Comands", CommCmd},
+                   {"CMD", "Test Comands[Subsytem][COMMAND] eg[COMM][RF_OFF]", CMD},
                    ARC_COMMANDS,//CTL_COMMANDS, ERROR_COMMANDS,
                    //end of list
                    {NULL,NULL,NULL}};
