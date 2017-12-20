@@ -17,6 +17,10 @@ int COMM_CDH_reset(void);
 int COMM_Get_Data(unsigned char *data);
 int COMM_Send_Data(unsigned char *data);
 
+// MikeTest Command DEfinition take out for FLIGHT
+
+extern unsigned char IMGCommand[];
+
 #endif
 
 

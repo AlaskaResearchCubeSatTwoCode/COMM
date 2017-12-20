@@ -290,6 +290,7 @@ int CommCmd(char **argv, unsigned short argc)
 int i;
 char CommCommand[] = {0x69, 0x19, 0x66, 0x29, 0x05, 0x02, 0x06, 0x75, 0x19, 0x76, 0x61, 0x0D, 0x21, 0x86, 0xC0, 0x0F, 0xC8, 0x00, 0x00, 0x00, 0x00};
 
+
 if(!strcmp(argv[1],"RF_ON"))
 {
  CommCommand[18] = 0xFF;
@@ -320,12 +321,29 @@ CommCommand[18] = 0xCC;
 CommCommand[19] = 0x76;
 CommCommand[20] = 0xE9;
 }
+else if(!strcmp(argv[1],"IMG_CLEARPIC"))
+{
+IMGCommand[18] = 0x72;
+IMGCommand[19] = 0x90;
+IMGCommand[20] = 0xCD;
 
-RxBuffer_Len = sizeof(CommCommand);
+}
+
+    /*
+    RxBuffer_Len = sizeof(CommCommand);
 
     for(i=0; i<RxBuffer_Len; i++)
     {
     RxBuffer[i] = CommCommand[i];
+    }
+
+    */
+
+    RxBuffer_Len = 21;
+
+    for(i=0; i<RxBuffer_Len; i++)
+    {
+    RxBuffer[i] = IMGCommand[i];
     }
 
 comm_evt_gs_decode();

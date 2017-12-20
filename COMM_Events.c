@@ -12,6 +12,10 @@
 
 CTL_EVENT_SET_t ev_SPI_data;
 
+// Take out 
+unsigned char IMGCommand[] = {0x69, 0x19, 0x66, 0x29, 0x05, 0x02, 0x06, 0x75, 0x19, 0x76, 0x61, 0x0D, 0x21, 0x86, 0xC0, 0x0F, 0x28, 0x00, 0x00, 0x00, 0x00};
+
+
 
 int comm_evt_gs_decode(void){// this is called from RX_event! 
   int i, len, resp;
@@ -46,7 +50,8 @@ int comm_evt_gs_decode(void){// this is called from RX_event!
 
     status.Num_CMD++; //Increment number of commands received
 
-        if(RxBuffer[16] == 0xC8) { 
+        if(RxBuffer[16] == 0xC8) 
+        { 
           printf("subsystem address: 0x%02x\r\n",RxBuffer[16]);
 //          printf("num: 0x%02x\r\n",RxBuffer[17]);
 //          printf("cmd: 0x%02x\r\n",RxBuffer[18]);
@@ -90,16 +95,17 @@ int comm_evt_gs_decode(void){// this is called from RX_event!
        } 
        //TODO this is no longer how ARC-2 works. we will send directly to subsystem not to CDH then relay.
     //else send to CDH  send CMD_GS_DATA I2C command to CDH with payload RxBuffer[16] - end    
-       else { 
-         printf("Sending GS CMD to CDH\r\n");
+       else 
+       { 
+         printf("Sending GS CMD to IMG\r\n");
          len = __bit_reverse_char(RxBuffer[17])+3;
          printf("subsystem address: 0x%02x, len: %d\r\n",__bit_reverse_char(RxBuffer[16]), len);
-         ptr=BUS_cmd_init(buf,CMD_GS_DATA);         //setup packet
+         ptr=BUS_cmd_init(buf, CMD_GS_DATA);         //setup packet
          for(i=0;i<len;i++){             //fill in telemetry data
            ptr[i]=__bit_reverse_char(RxBuffer[16+i]);
           }
-          resp=BUS_cmd_tx(BUS_ADDR_CDH,buf,len,0);  //send command
-          if(resp!=RET_SUCCESS){ printf("Failed to send GS CMD to CDH %s\r\n",BUS_error_str(resp));}
+          resp=BUS_cmd_tx(BUS_ADDR_IMG,buf,len,0);  //send command
+          if(resp!=RET_SUCCESS){ printf("Failed to send GS CMD to IMG %s\r\n",BUS_error_str(resp));}
        }
 
       return RET_SUCCESS;
