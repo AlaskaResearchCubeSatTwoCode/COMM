@@ -65,6 +65,7 @@ void main(void){
    //setup command receive
    BUS_register_cmd_callback(&COMM_parse);
 
+
    
   // initialize stacks (3) 
   memset(terminal_stack,0xcd,sizeof(terminal_stack));                                                     // write known values into the stack 

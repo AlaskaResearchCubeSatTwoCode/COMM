@@ -19,9 +19,6 @@ short beacon_on=0, beacon_flag=0,data_mode=TX_DATA_BUFFER;
 unsigned char data_seed, IMG_Blk, Tx1Buffer[600], RxBuffer[600], RxTemp[30];
 unsigned int Tx1Buffer_Len, TxBufferPos=0, TxBytesRemaining, RxBuffer_Len=0, RxBufferPos=0, RxBytesRemaining, state, sec = 0;
 
-
-
-
 /****************************************************** Subsystem Events ******************************************************************************
 //flags for events handled by the subsystem
 enum{SUB_EV_PWR_OFF=(1<<0),SUB_EV_PWR_ON=(1<<1),SUB_EV_SEND_STAT=(1<<2),SUB_EV_SPI_DAT=(1<<3),
@@ -134,6 +131,7 @@ unsigned char tx_data_gen(unsigned char *dest,unsigned short size,int mode,unsig
   }
   return seed;
 }
+
 
 
 int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len,unsigned char flags);
