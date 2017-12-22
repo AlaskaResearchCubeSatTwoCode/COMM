@@ -63,7 +63,7 @@ void main(void){
    mmcInit_msp();
 
    //setup command receive
-   //BUS_register_cmd_callback(&COMM_parse);
+   BUS_register_cmd_callback(&COMM_parse);
 
    
   // initialize stacks (3) 

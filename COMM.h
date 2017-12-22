@@ -83,6 +83,7 @@ extern CTL_EVENT_SET_t COMM_evt;
   void PrintBuffer(char *dat, unsigned int len);
   void PrintBufferBitInv(char *dat, unsigned int len);
 
+  extern CMD_PARSE_DAT COMM_parse;
   extern unsigned char Tx1Buffer[];
   extern unsigned char RxBuffer[];
   extern unsigned int Tx1Buffer_Len, TxBufferPos, TxBytesRemaining;

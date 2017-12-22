@@ -140,14 +140,19 @@ int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigne
 CMD_PARSE_DAT COMM_parse={COMM_parseCmd,CMD_PARSE_ADDR0|CMD_PARSE_GC_ADDR,BUS_PRI_NORMAL,NULL};
 
 //handle subsystem specific commands - this is for I2C commands on the BUS that are not SUB events, so system specific commands.
+/*
+CMD_PING=7,CMD_NACK=51,CMD_SPI_COMPLETE,CMD_SPI_RDY,CMD_SUB_ON,CMD_SUB_OFF,CMD_SUB_POWERUP,CMD_RESET,CMD_SUB_STAT,
+     CMD_SPI_CLEAR,CMD_EPS_STAT,CMD_LEDL_STAT,CMD_ACDS_STAT,CMD_COMM_STAT,CMD_IMG_STAT,CMD_ASYNC_SETUP,
+     CMD_ASYNC_DAT,CMD_SPI_DATA_ACTION,CMD_ERR_REQ,CMD_IMG_READ_PIC,CMD_IMG_TAKE_TIMED_PIC,CMD_IMG_TAKE_PIC_NOW,
+     CMD_GS_DATA,CMD_TEST_MODE,CMD_BEACON_ON_OFF,CMD_ACDS_CONFIG,CMD_IMG_CLEARPIC,CMD_LEDL_READ_BLOCK,
+     CMD_ACDS_READ_BLOCK,CMD_EPS_SEND,CMD_LEDL_BLOW_FUSE,CMD_SPI_ABORT,CMD_BEACON_TYPE,CMD_HW_RESET,CMD_RF_REQ};
+
+ */
+
+
 int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len,unsigned char flags){
   switch(cmd){
-      case CMD_LEDL_READ_BLOCK:
-      
-      break;
-    
-      case CMD_LEDL_BLOW_FUSE:
-
+      case CMD_BEACON_ON_OFF:
       break;
     default:
       return ERR_UNKNOWN_CMD;
