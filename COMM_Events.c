@@ -12,7 +12,6 @@
 
 CTL_EVENT_SET_t ev_SPI_data;
 
-
 int comm_evt_gs_decode(void){// this is called from RX_event! 
   int i, len, resp;
   unsigned char FCS[2];
@@ -22,11 +21,11 @@ int comm_evt_gs_decode(void){// this is called from RX_event!
 
     // Check destination address (all bit reversed!)
         if((RxBuffer[0] == 0x69) && (RxBuffer[1] == 0x19) && (RxBuffer[2] == 0x66) && (RxBuffer[3] == 0x29) && (RxBuffer[4] == 0x05) && (RxBuffer[5] == 0x02)){
-//            printf("Destination address good!\r\n");
+           printf("Destination address good!\r\n");
         } else{ return ERR_BAD_COMM_DEST_ADDR; }
     // Check source address (all bit reversed!)
         if((RxBuffer[7] == 0x75) && (RxBuffer[8] == 0x19) && (RxBuffer[9] == 0x76) && (RxBuffer[10] == 0x61) && (RxBuffer[11] == 0x0D) && (RxBuffer[12] == 0x21)){
-//           printf("Source address good!\r\n");
+        printf("Source address good!\r\n");
         } else{ return ERR_BAD_COMM_SRC_ADDR;}
     // Verify CRC  
         FCS[0]=RxBuffer[RxBuffer_Len-2];
@@ -36,42 +35,54 @@ int comm_evt_gs_decode(void){// this is called from RX_event!
         RxBuffer_Len = RxBuffer_Len-2;
         CRC_CCITT_Generator(RxBuffer, &RxBuffer_Len);
         if((FCS[0] == RxBuffer[RxBuffer_Len-2]) && (FCS[1] == RxBuffer[RxBuffer_Len-1])){
-//          printf("CRC checked\r\n");
-        } else{ return ERR_BAD_COMM_CRC; }
+        printf("CRC checked\r\n");
+        } 
+        else
+        { return ERR_BAD_COMM_CRC;
+        printf("CRC bad\r\n");
+        }
     //GS command to COMM
 
     status.Num_CMD++; //Increment number of commands received
 
-        if(RxBuffer[16] == 0xC8) { 
+        if(RxBuffer[16] == 0xC8) 
+        { 
           printf("subsystem address: 0x%02x\r\n",RxBuffer[16]);
 //          printf("num: 0x%02x\r\n",RxBuffer[17]);
 //          printf("cmd: 0x%02x\r\n",RxBuffer[18]);
           switch(__bit_reverse_char(RxBuffer[18])){
             case COMM_RF_OFF:
               beacon_on=0;
+               printf("COMM_RF_OFF\r\n"); 
               return RET_SUCCESS;
             case COMM_RF_ON:
               beacon_on=1;
+              printf("COMM_RF_ON\r\n");
               return RET_SUCCESS;
             case COMM_BEACON_STATUS:
               beacon_flag=1;
+              printf("COMM_BEACON_STATUS\r\n");
               return RET_SUCCESS;
             case COMM_BEACON_HELLO:
+            printf("COMM_BEACON_HELLO\r\n");
               beacon_flag=0;
               return RET_SUCCESS;
             case COMM_RESET_CDH:
+            printf("COMM_RESET_CDH\r\n");
               return COMM_CDH_reset();
             case COMM_GET_DATA:
               len = __bit_reverse_char(RxBuffer[17]);
               for(i=0;i<len;i++){
                   buf[i]=__bit_reverse_char(RxBuffer[19+i]);
               }
+              printf("COMM_GET_DATA\r\n");
               return COMM_Get_Data(buf);
             case COMM_SEND_DATA:
               len = __bit_reverse_char(RxBuffer[17]);
               for(i=0;i<len;i++){
                   buf[i]=__bit_reverse_char(RxBuffer[19+i]);
               }
+              printf("COMM_SEND_DATA\r\n");
               return COMM_Send_Data(buf);
             default:
               return ERR_UNKNOWN_COMM_CMD;
@@ -79,16 +90,18 @@ int comm_evt_gs_decode(void){// this is called from RX_event!
        } 
        //TODO this is no longer how ARC-2 works. we will send directly to subsystem not to CDH then relay.
     //else send to CDH  send CMD_GS_DATA I2C command to CDH with payload RxBuffer[16] - end    
-       else { 
-         printf("Sending GS CMD to CDH\r\n");
+       else 
+       { 
+         printf("Sending GS CMD to IMG\r\n");
          len = __bit_reverse_char(RxBuffer[17])+3;
          printf("subsystem address: 0x%02x, len: %d\r\n",__bit_reverse_char(RxBuffer[16]), len);
-         ptr=BUS_cmd_init(buf,CMD_GS_DATA);         //setup packet
+         ptr=BUS_cmd_init(buf, CMD_GS_DATA);         //setup packet
          for(i=0;i<len;i++){             //fill in telemetry data
            ptr[i]=__bit_reverse_char(RxBuffer[16+i]);
           }
-          resp=BUS_cmd_tx(BUS_ADDR_CDH,buf,len,0);  //send command
-          if(resp!=RET_SUCCESS){ printf("Failed to send GS CMD to CDH %s\r\n",BUS_error_str(resp));}
+
+           resp=BUS_cmd_tx(__bit_reverse_char(RxBuffer[16]),buf,len,0);
+          if(resp!=RET_SUCCESS){ printf("Failed to send GS CMD to 0x%02x, %s\r\n",__bit_reverse_char(RxBuffer[16]), BUS_error_str(resp));}
        }
 
       return RET_SUCCESS;
