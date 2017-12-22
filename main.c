@@ -7,7 +7,8 @@
 #include <UCA2_uart.h>        // UART setup 
 #include "pins.h"         
 #include "Radio_functions.h"      
-#include "COMM.h"  
+#include "COMM.h" 
+#include "SDlib.h" 
 #include <i2c.h>
 
 
@@ -52,13 +53,14 @@ void main(void){
   //initialize UART
   UCA2_init_UART(UART_PORT,UART_TX_PIN_NUM,UART_RX_PIN_NUM);
  
- //initI2C(4,1,0);  //set up I2C bus function(unsigned int port,unsigned int sda,unsigned int scl)
+ //TODO test this
+ initI2C(3,7,6);  //set up UCB1 I2C bus function(unsigned int port,unsigned int sda,unsigned int scl)
 
   //setup bus interface
   initARCbus(0x1F);   // Default addr for "SYS" subsystem, should be changed for specific subsystems.
 
- //initialize SDcard
- //TODO mmcInit_msp();
+   //initialize SDcard
+   mmcInit_msp();
    
   // initialize stacks (3) 
   memset(terminal_stack,0xcd,sizeof(terminal_stack));                                                     // write known values into the stack 
