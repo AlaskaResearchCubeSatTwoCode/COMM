@@ -95,8 +95,10 @@ int comm_evt_gs_decode(void){// this is called from RX_event!
          printf("Sending GS CMD to IMG\r\n");
          len = __bit_reverse_char(RxBuffer[17])+3;
          printf("subsystem address: 0x%02x, len: %d\r\n",__bit_reverse_char(RxBuffer[16]), len);
-         ptr=BUS_cmd_init(buf, CMD_GS_DATA);         //setup packet
-         for(i=0;i<len;i++){             //fill in telemetry data
+         //TODO ASAP
+         ptr=BUS_cmd_init(buf, CMD_IMG_CLEARPIC);         //setup packet CMD_IMG_CLEARPIC needs to be changed to Reflect the Command.
+         for(i=0;i<len;i++)
+         {             //fill in telemetry data
            ptr[i]=__bit_reverse_char(RxBuffer[16+i]);
           }
 

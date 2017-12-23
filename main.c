@@ -57,7 +57,10 @@ void main(void){
  initI2C(3,7,6);  //set up UCB1 I2C bus function(unsigned int port,unsigned int sda,unsigned int scl)
 
   //setup bus interface
-  initARCbus(0x1F);   // Default addr for "SYS" subsystem, should be changed for specific subsystems.
+  initARCbus(0x13);
+
+  //1F????
+  //initARCbus(0x1F);   // Default addr for "SYS" subsystem, should be changed for specific subsystems.
 
    //initialize SDcard
    mmcInit_msp();

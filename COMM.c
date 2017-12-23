@@ -151,6 +151,7 @@ CMD_PING=7,CMD_NACK=51,CMD_SPI_COMPLETE,CMD_SPI_RDY,CMD_SUB_ON,CMD_SUB_OFF,CMD_S
 int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len,unsigned char flags){
   switch(cmd){
       case CMD_BEACON_ON_OFF:
+      P7OUT=0x01;
       break;
     default:
       return ERR_UNKNOWN_CMD;
