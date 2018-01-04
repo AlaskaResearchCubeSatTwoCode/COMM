@@ -3,6 +3,7 @@
 #include <ctl.h>
 #include <stdio.h>
 #include <ARCbus.h>
+//#include <ARCbus_internal.h>
 #include <string.h>
 #include <SDlib.h>
 #include "COMM.h"
@@ -10,6 +11,7 @@
 #include "Radio_functions.h"
 #include "i2c.h"
 #include "AX25_EncodeDecode.h"
+#include <Error.h>
 
 
 COMM_STAT status;
@@ -132,8 +134,6 @@ unsigned char tx_data_gen(unsigned char *dest,unsigned short size,int mode,unsig
   return seed;
 }
 
-
-
 int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len,unsigned char flags);
 CMD_PARSE_DAT COMM_parse={COMM_parseCmd,CMD_PARSE_ADDR0|CMD_PARSE_GC_ADDR,BUS_PRI_NORMAL,NULL};
 
@@ -146,17 +146,33 @@ CMD_PING=7,CMD_NACK=51,CMD_SPI_COMPLETE,CMD_SPI_RDY,CMD_SUB_ON,CMD_SUB_OFF,CMD_S
      CMD_ACDS_READ_BLOCK,CMD_EPS_SEND,CMD_LEDL_BLOW_FUSE,CMD_SPI_ABORT,CMD_BEACON_TYPE,CMD_HW_RESET,CMD_RF_REQ};
 
  */
-
-
 int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len,unsigned char flags){
-  switch(cmd){
+    switch(cmd)
+    {
+    //NOTE is this right?
       case CMD_BEACON_ON_OFF:
-      P7OUT=0x01;
+      //If beacon is off it will turn on.
+      if (beacon_on == 0)
+      {
+      beacon_on = 1;
+      }
+      //If beacon is on it will turn off.
+      else if (beacon_on == 1)
+      {
+      beacon_on = 0;
+      }
+      //If not illegal command value.
+      else 
+      {
+      return ERR_ILLEAGLE_COMMAND;
+      }
       break;
     default:
       return ERR_UNKNOWN_CMD;
   }
 }
+
+
 
 //************************************************************************** COMM Events two *******************************************************************************
 // Bec. COMM Events filled up ! 

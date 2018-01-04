@@ -271,6 +271,7 @@ int TestCmd(char **argv,unsigned short argc){
   return 0;
 }
 
+//TODO: Update for ARC 2
 int BurnCmd(char **argv, unsigned short argc){
 
   printf("Burn command initiated\r\n");
@@ -306,23 +307,35 @@ if(!strcmp(argv[1],"COMM"))
   CommCommand[19] = 0x6E;
   CommCommand[20] = 0x29;
   }
-  else if(!strcmp(argv[2],"COMM_BEACON_STATUS"))
+  else if(!strcmp(argv[2],"BEACON_STATUS"))
   {
   CommCommand[18] = 0xF0;
   CommCommand[19] = 0x81;
   CommCommand[20] = 0x36;
   }
-  else if(!strcmp(argv[2],"COMM_BEACON_HELLO"))
+  else if(!strcmp(argv[2],"BEACON_HELLO"))
   {
   CommCommand[18] = 0x0F;
   CommCommand[19] = 0x9F;
   CommCommand[20] = 0xC6;
   }
-  else if(!strcmp(argv[2],"COMM_RESET_CDH"))
+  else if(!strcmp(argv[2],"RESET_CDH"))
   {
   CommCommand[18] = 0xCC;
   CommCommand[19] = 0x76;
   CommCommand[20] = 0xE9;
+  }
+  else if(!strcmp(argv[2],"SEND_DATA"))
+  {
+  CommCommand[18] = 0xAA;
+  CommCommand[19] = 0x7A;
+  CommCommand[20] = 0x89;
+  }
+  else if(!strcmp(argv[2],"DEPLOY_UHF"))
+  {
+  CommCommand[18] = 0x50;
+  CommCommand[19] = 0x34;
+  CommCommand[20] = 0xDC;
   }
 
   RxBuffer_Len = sizeof(CommCommand);

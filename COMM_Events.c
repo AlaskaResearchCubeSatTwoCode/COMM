@@ -50,7 +50,9 @@ int comm_evt_gs_decode(void){// this is called from RX_event!
           printf("subsystem address: 0x%02x\r\n",RxBuffer[16]);
 //          printf("num: 0x%02x\r\n",RxBuffer[17]);
 //          printf("cmd: 0x%02x\r\n",RxBuffer[18]);
-          switch(__bit_reverse_char(RxBuffer[18])){
+          switch(__bit_reverse_char(RxBuffer[18]))
+          {
+          //NOTE Add code to deal with turning off amplifiers during RF_OFF.
             case COMM_RF_OFF:
               beacon_on=0;
                printf("COMM_RF_OFF\r\n"); 
@@ -70,13 +72,6 @@ int comm_evt_gs_decode(void){// this is called from RX_event!
             case COMM_RESET_CDH:
             printf("COMM_RESET_CDH\r\n");
               return COMM_CDH_reset();
-            case COMM_GET_DATA:
-              len = __bit_reverse_char(RxBuffer[17]);
-              for(i=0;i<len;i++){
-                  buf[i]=__bit_reverse_char(RxBuffer[19+i]);
-              }
-              printf("COMM_GET_DATA\r\n");
-              return COMM_Get_Data(buf);
             case COMM_SEND_DATA:
               len = __bit_reverse_char(RxBuffer[17]);
               for(i=0;i<len;i++){
@@ -84,19 +79,20 @@ int comm_evt_gs_decode(void){// this is called from RX_event!
               }
               printf("COMM_SEND_DATA\r\n");
               return COMM_Send_Data(buf);
+            case COMM_DEPLOY_UHF:
+              return DeployUHF();
             default:
               return ERR_UNKNOWN_COMM_CMD;
           }
        } 
-       //TODO this is no longer how ARC-2 works. we will send directly to subsystem not to CDH then relay.
-    //else send to CDH  send CMD_GS_DATA I2C command to CDH with payload RxBuffer[16] - end    
+       //NOTE: BUS_cmd_init(buf, RxBuffer[18]));   should pass the non-Comm command at position RXbuffer[18] to the correct subsystem.
        else 
        { 
-         printf("Sending GS CMD to IMG\r\n");
+         printf("Sending GS CMD to Arcbus\r\n");
          len = __bit_reverse_char(RxBuffer[17])+3;
          printf("subsystem address: 0x%02x, len: %d\r\n",__bit_reverse_char(RxBuffer[16]), len);
-         //TODO ASAP
-         ptr=BUS_cmd_init(buf, CMD_IMG_CLEARPIC);         //setup packet CMD_IMG_CLEARPIC needs to be changed to Reflect the Command.
+       
+         ptr=BUS_cmd_init(buf, RxBuffer[18]);        
          for(i=0;i<len;i++)
          {             //fill in telemetry data
            ptr[i]=__bit_reverse_char(RxBuffer[16+i]);
@@ -105,10 +101,8 @@ int comm_evt_gs_decode(void){// this is called from RX_event!
            resp=BUS_cmd_tx(__bit_reverse_char(RxBuffer[16]),buf,len,0);
           if(resp!=RET_SUCCESS){ printf("Failed to send GS CMD to 0x%02x, %s\r\n",__bit_reverse_char(RxBuffer[16]), BUS_error_str(resp));}
        }
-
       return RET_SUCCESS;
 }
-
 
 //return error strings for error code
 const char *COMM_error_str(int error){
@@ -141,77 +135,7 @@ int COMM_CDH_reset(void){
     return RET_SUCCESS;
 }
 
-
-int COMM_Get_Data(unsigned char *data){
-  int i;
-  unsigned int e;
-  unsigned long start;
-  unsigned char buf[BUS_I2C_HDR_LEN+3+BUS_I2C_CRC_LEN],*ptr;
-
-  switch(data[0]){
-    case BUS_ADDR_ACDS:
-      start = ((unsigned long) data[1])<<16;
-      start |=((unsigned long) data[2])<<8;
-      start |=((unsigned long) data[3]);
-      for(i=0;i<data[4];i++){
-         ptr=BUS_cmd_init(buf,CMD_ACDS_READ_BLOCK);
-         ptr[0]=start>>16;
-         ptr[1]=start>>8;
-         ptr[2]=start;
-         BUS_cmd_tx(BUS_ADDR_ACDS,buf,3,0);
-         e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&ev_SPI_data,SPI_EV_DATA_REC,CTL_TIMEOUT_DELAY,1024);
-         if(!(e&SPI_EV_DATA_REC)){
-          //data not received
-          return ERR_DATA_NOT_TRANSFERED;
-         }
-         start++;
-      }
-      return RET_SUCCESS;
-    case BUS_ADDR_LEDL:
-      start = ((unsigned long) data[1])<<16;
-      start |=((unsigned long) data[2])<<8;
-      start |=((unsigned long) data[3]);
-      for(i=0;i<data[4];i++){
-         ptr=BUS_cmd_init(buf,CMD_LEDL_READ_BLOCK);
-         ptr[0]=start>>16;
-         ptr[1]=start>>8;
-         ptr[2]=start;
-         BUS_cmd_tx(BUS_ADDR_LEDL,buf,3,0);
-         e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&ev_SPI_data,SPI_EV_DATA_REC,CTL_TIMEOUT_DELAY,1024);
-         if(!(e&SPI_EV_DATA_REC)){
-          //data not received
-          return ERR_DATA_NOT_TRANSFERED;
-         }
-         start++;
-      }
-      return RET_SUCCESS;
-    case BUS_ADDR_IMG:
-      //Read Image Start Block Definition Image ID, block number
-      ptr=BUS_cmd_init(buf,CMD_IMG_READ_PIC);
-      ptr[0]=data[3]; //Image number is one byte long.
-      ptr[1]=0;
-      BUS_cmd_tx(BUS_ADDR_IMG,buf,2,0);
-      e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&ev_SPI_data,SPI_EV_DATA_REC,CTL_TIMEOUT_DELAY,1024);
-      if(!(e&SPI_EV_DATA_REC)){
-        //data not received
-        return ERR_DATA_NOT_TRANSFERED;
-      }
-      for(i=1;i<IMG_Blk;i++){
-         ptr[1]=i;
-         BUS_cmd_tx(BUS_ADDR_IMG,buf,2,0);
-         e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&ev_SPI_data,SPI_EV_DATA_REC,CTL_TIMEOUT_DELAY,1024);
-         if(!(e&SPI_EV_DATA_REC)){
-          //data not received
-          return ERR_DATA_NOT_TRANSFERED;
-         }
-      }
-      return RET_SUCCESS;
-    default:
-      return ERR_UNKNOWN_SUBADDR;
-   }
-
-}
-
+//TODO: Might have to rewrite this for ARC 2 specifics.
 int COMM_Send_Data(unsigned char *data){
   int i,j;
   unsigned long start;
@@ -237,7 +161,7 @@ int COMM_Send_Data(unsigned char *data){
      //**** Create AX.25 packet (needs to include FCS, bit stuffed, flags) ***
      CRC_CCITT_Generator(Tx1Buffer, &Tx1Buffer_Len);                           //Generate FCS
      Stuff_Transition_Scramble(Tx1Buffer, &Tx1Buffer_Len);                     //Bit stuff - Encode for transitions - Scramble data
-     ctl_events_set_clear(&COMM_evt,COMM_EVT_CC2500_1_TX_START,0);                     //TODO make a fuction to select event Send to Radio to transmit 
+     ctl_events_set_clear(&COMM_evt,COMM_EVT_CC2500_1_TX_START,0);                     //TODO make a function to select event Send to Radio to transmit 
      e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&ev_SPI_data,SPI_EV_DATA_TX,CTL_TIMEOUT_DELAY,1024);
      if(!(e&SPI_EV_DATA_TX)){
           //data not received
@@ -251,4 +175,11 @@ int COMM_Send_Data(unsigned char *data){
   return RET_SUCCESS;
 }
 
-
+//TODO Update with the correct Code
+//First initialize 5 V EPS PDM?? timer
+//2 I2C commands AXE Brandt.
+int DeployUHF(void)
+{
+printf("MIKE IS THE BEST");
+return 1;
+}

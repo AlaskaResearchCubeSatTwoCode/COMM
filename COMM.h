@@ -49,10 +49,6 @@ extern CTL_EVENT_SET_t COMM_evt;
   //data transmit types
   enum{TX_DATA_BUFFER=0,TX_DATA_RANDOM,TX_DATA_PATTERN};
 
-  //command table for GS commands
-  enum{COMM_RF_OFF=0x00, COMM_RF_ON=0xFF, COMM_BEACON_STATUS=0x0F, COMM_BEACON_HELLO=0xF0, COMM_RESET_CDH=0x33, COMM_GET_DATA=0xAA, COMM_SEND_DATA=0x55};
-
-
   //structure for status data from COMM
   typedef struct{
     unsigned char CC1101;	//MARCSTATE of CC1101 radio
