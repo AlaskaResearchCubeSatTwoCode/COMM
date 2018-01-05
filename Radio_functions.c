@@ -1,3 +1,4 @@
+//radio_function
 // ALL FUNCTIONS USED TO OPERATE THE CC1100 and CC250 Radios
 #include <msp430.h>
 #include <stdio.h>
@@ -198,8 +199,6 @@ void Radio_Write_Registers(char addr, char value, int radio_select)
   while (UCA3STATW & UCBUSY);                // Wait for TX to complete
 
   radio_SPI_desel(radio_select);                // de-select SPI CS
-
-  
 }
 
 //Function to write multiple bytes to the radio registers
@@ -219,6 +218,25 @@ void Radio_Write_Burst_Registers(char addr, unsigned char *buffer, int count, in
   while (UCA3STATW & UCBUSY);                    // Wait for TX to complete
   
   radio_SPI_desel(radio_select);                // de-select SPI CS
+}
+
+//gen data for transmit , random or pattern  using in COMM.c TX events
+unsigned char tx_data_gen(unsigned char *dest,unsigned short size,int mode,unsigned char seed){
+  int i;
+  for(i=0;i<=size;i++){
+    switch(mode){
+      case TX_DATA_PATTERN:  //101... packet 
+              dest[i]=seed;  // uses seed as patten              
+      break;
+      case TX_DATA_RANDOM:  //rand packet 
+        seed=(seed>>1)^(-(seed&1)&0xB8);
+        dest[i]=seed;
+      break;
+      default:
+      break;
+    }
+  }
+  return seed;
 }
 
 void Reset_Radio(int radio_select)

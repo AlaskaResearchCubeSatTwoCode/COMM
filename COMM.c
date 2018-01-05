@@ -1,9 +1,9 @@
+//COMM.c
 #include <msp430.h>
 #include <MSP430F6779A.h>
 #include <ctl.h>
 #include <stdio.h>
 #include <ARCbus.h>
-//#include <ARCbus_internal.h>
 #include <string.h>
 #include <SDlib.h>
 #include "COMM.h"
@@ -16,6 +16,7 @@
 
 COMM_STAT status;
 CTL_EVENT_SET_t COMM_evt,COMM_evt2;
+CMD_PARSE_DAT COMM_parse={COMM_parseCmd,CMD_PARSE_ADDR0|CMD_PARSE_GC_ADDR,BUS_PRI_NORMAL,NULL};
 
 short beacon_on=0, beacon_flag=0,data_mode=TX_DATA_BUFFER;
 unsigned char data_seed, IMG_Blk, Tx1Buffer[600], RxBuffer[600], RxTemp[30];
@@ -114,38 +115,7 @@ void sub_events(void *p) __toplevel{ // note most of this setup is taken care of
   } 
 }
 
-//**************************************************************** radio commands ******************************************************************
-//
-//**************************************************************************************************************************************************
-//gen data for transmit , random or pattern  
-unsigned char tx_data_gen(unsigned char *dest,unsigned short size,int mode,unsigned char seed){
-  int i;
-  for(i=0;i<=size;i++){
-    switch(mode){
-      case TX_DATA_PATTERN:  //101... packet 
-              dest[i]=seed;  // uses seed as patten              
-      break;
-      case TX_DATA_RANDOM:  //rand packet 
-        seed=(seed>>1)^(-(seed&1)&0xB8);
-        dest[i]=seed;
-      break;
-    }
-  }
-  return seed;
-}
-
-int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len,unsigned char flags);
-CMD_PARSE_DAT COMM_parse={COMM_parseCmd,CMD_PARSE_ADDR0|CMD_PARSE_GC_ADDR,BUS_PRI_NORMAL,NULL};
-
 //handle subsystem specific commands - this is for I2C commands on the BUS that are not SUB events, so system specific commands.
-/*
-CMD_PING=7,CMD_NACK=51,CMD_SPI_COMPLETE,CMD_SPI_RDY,CMD_SUB_ON,CMD_SUB_OFF,CMD_SUB_POWERUP,CMD_RESET,CMD_SUB_STAT,
-     CMD_SPI_CLEAR,CMD_EPS_STAT,CMD_LEDL_STAT,CMD_ACDS_STAT,CMD_COMM_STAT,CMD_IMG_STAT,CMD_ASYNC_SETUP,
-     CMD_ASYNC_DAT,CMD_SPI_DATA_ACTION,CMD_ERR_REQ,CMD_IMG_READ_PIC,CMD_IMG_TAKE_TIMED_PIC,CMD_IMG_TAKE_PIC_NOW,
-     CMD_GS_DATA,CMD_TEST_MODE,CMD_BEACON_ON_OFF,CMD_ACDS_CONFIG,CMD_IMG_CLEARPIC,CMD_LEDL_READ_BLOCK,
-     CMD_ACDS_READ_BLOCK,CMD_EPS_SEND,CMD_LEDL_BLOW_FUSE,CMD_SPI_ABORT,CMD_BEACON_TYPE,CMD_HW_RESET,CMD_RF_REQ};
-
- */
 int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len,unsigned char flags){
     switch(cmd)
     {
@@ -172,55 +142,21 @@ int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigne
   }
 }
 
-
-
-//************************************************************************** COMM Events two *******************************************************************************
-// Bec. COMM Events filled up ! 
-//**************************************************************************************************************************************************************************
-void COMM_events2(void *p) __toplevel{
-  unsigned int e;
-  
-// code for burn and RF insertion delay 
-//NOTE this must be uncommented for flight code !!!!!
-//int BUS_set_alarm(unsigned char num,ticker time,CTL_EVENT_SET_t *e,CTL_EVENT_SET_t event);
-  BUS_set_alarm(BUS_ALARM_0,get_ticker_time()+ANT_DEPLOY_TIME,&COMM_evt2,COMM_EVT2_RF_EN);
-  BUS_set_alarm(BUS_ALARM_1,get_ticker_time()+RF_ON_TIME,&COMM_evt2,COMM_EVT2_BURN_DELAY);
-
- ctl_events_init(&COMM_evt2,0);     
-
-//endless loop
-    for(;;){
-      //wait for events
-      e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&COMM_evt2,COMM_EVT2_ALL,CTL_TIMEOUT_NONE,0);
-
-      //******************************************************************************************* COMM_EVT_STATUS_REQ
-      if(e&COMM_EVT2_RF_EN){
-      // set beacon flag on here. when beacon flag off we can still RX but no TX
-      P7OUT |= BIT0; // RF enabled indicator LED
-      printf("COMM_EVT2_RF_EN\r\n");
-
-   }
-     else if(e&COMM_EVT2_BURN_DELAY ){
-      P7OUT |= BIT1;  // Antenna burn indicator LED on
-      printf("COMM_EVT2_BURN_DELAY\r\n");
-      /*  // send CDH I2C command for burn
-      if(err = 0){
-        P7OUT ^= BIT1;  // Toggle antenna burn indicator LED off at the end of burn 
-
-      }*/
-
-      
-   }
-  }
-}
-
-
 //************************************************************************** COMM Events *******************************************************************************
 //
 //**********************************************************************************************************************************************************************
 void COMM_events(void *p) __toplevel{
   unsigned int e, count;
   int i, resp; 
+
+// code for burn and RF insertion delay 
+//NOTE this must be uncommented for flight code !!!!!
+//int BUS_set_alarm(unsigned char num,ticker time,CTL_EVENT_SET_t *e,CTL_EVENT_SET_t event);
+ //In flight code this should be called after insertion delay timer
+  COMM_beacon_setup();                            // start beacon timer (dose not start transmission)
+  BUS_set_alarm(BUS_ALARM_0,get_ticker_time()+ANT_DEPLOY_TIME,&COMM_evt2,COMM_EVT2_RF_EN);
+  BUS_set_alarm(BUS_ALARM_1,get_ticker_time()+RF_ON_TIME,&COMM_evt2,COMM_EVT2_BURN_DELAY);
+  mmcInit_card();
 
 // NOTE should we clear flags or does rest do this ? 
     Reset_Radio(CC2500_1);                  // Reset Radios/initialize status
@@ -235,12 +171,8 @@ void COMM_events(void *p) __toplevel{
   //Radio_Write_Burst_Registers(TI_CCxxx0_PATABLE, paTable_CC1101, paTableLen, CC1101);
   Radio_Interrupt_Setup();
     
-  //TODO Need to set up two radio setups. Might have to have them done separtely  
   Radio_Strobe(TI_CCxxx0_SRX, CC2500_1);          //Initialize CCxxxx in Rx mode
   Radio_Strobe(TI_CCxxx0_SRX, CC1101);            //Initialize CCxxxx in Rx mode
-
-  //NOTE in flight code this should be called after insertion delay timer
-  COMM_beacon_setup();                            // start beacon timer (dose not start transmission)
 
   ctl_events_init(&COMM_evt,0);                   //Initialize Event
 
@@ -678,6 +610,39 @@ void PrintBufferBitInv(char *dat, unsigned int len){
     printf("\r\n");
     printf("\r\n");
 }
+
+//************************************************************************** COMM Events two *******************************************************************************
+// Bec. COMM Events filled up ! 
+//**************************************************************************************************************************************************************************
+void COMM_events2(void *p) __toplevel{
+  unsigned int e;
+
+ ctl_events_init(&COMM_evt2,0);     
+
+//endless loop
+    for(;;){
+      //wait for events
+      e=ctl_events_wait(CTL_EVENT_WAIT_ANY_EVENTS_WITH_AUTO_CLEAR,&COMM_evt2,COMM_EVT2_ALL,CTL_TIMEOUT_NONE,0);
+
+      //******************************************************************************************* COMM_EVT_STATUS_REQ
+      if(e&COMM_EVT2_RF_EN){
+      // set beacon flag on here. when beacon flag off we can still RX but no TX
+      P7OUT |= BIT0; // RF enabled indicator LED
+      printf("COMM_EVT2_RF_EN\r\n");
+
+   }
+     else if(e&COMM_EVT2_BURN_DELAY ){
+      P7OUT |= BIT1;  // Antenna burn indicator LED on
+      printf("COMM_EVT2_BURN_DELAY\r\n");
+      /*  // send CDH I2C command for burn
+      if(err = 0){
+        P7OUT ^= BIT1;  // Toggle antenna burn indicator LED off at the end of burn 
+
+      }*/  
+   }
+  }
+}
+
 //************************************************************** radio IR code****************************************************************************************
 void Radio_Interrupt_Setup(void){ // Enable RX interrupts only!  TX interrupt enabled in TX Start
   // Use GDO0 and GDO2 as interrupts to control TX/RX of radio

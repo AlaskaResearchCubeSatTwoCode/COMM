@@ -4,7 +4,7 @@
 typedef int BOOL;
 #define TRUE 1
 #define FALSE 0
-#define CDH_RESET       BIT4 //P6.4
+#define CDH_RESET       BIT6 //P6.6
 
 // ARC1(CDH) --> ARC2(COMM) delays code update
 #define ANT_DEPLOY_TIME         (10ul*60ul*1024ul) //10 minutes
@@ -46,8 +46,7 @@ extern CTL_EVENT_SET_t COMM_evt;
  
 
 
-  //data transmit types
-  enum{TX_DATA_BUFFER=0,TX_DATA_RANDOM,TX_DATA_PATTERN};
+
 
   //structure for status data from COMM
   typedef struct{
@@ -81,6 +80,7 @@ extern CTL_EVENT_SET_t COMM_evt;
   void Radio_Interrupt_Setup(void);
   void PrintBuffer(char *dat, unsigned int len);
   void PrintBufferBitInv(char *dat, unsigned int len);
+  int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len,unsigned char flags);
 
 
   extern CMD_PARSE_DAT COMM_parse;

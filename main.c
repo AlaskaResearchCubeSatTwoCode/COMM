@@ -1,3 +1,4 @@
+// main
 #include <msp430.h>
 #include <ctl.h>
 #include <ARCbus.h>
@@ -59,11 +60,13 @@ void main(void){
   //setup bus interface
   initARCbus(0x13);
 
-   //initialize SDcard
-   mmcInit_msp();
+  //initialize SDcard
+  mmcInit_msp();
+  //intializes SDCard pins
+  //mmc_pins_on();
 
-   //setup command receive
-   BUS_register_cmd_callback(&COMM_parse);
+  //setup command receive
+  BUS_register_cmd_callback(&COMM_parse);
 
 
    
@@ -83,6 +86,7 @@ void main(void){
   ctl_task_run(&comm_task,BUS_PRI_HIGH, COMM_events, NULL,"COMM_SYS_events", sizeof(COMM_sys_stack)/sizeof(COMM_sys_stack[0])-2,COMM_sys_stack-1,0);
   ctl_task_run(&comm_task2,BUS_PRI_HIGH, COMM_events2, NULL,"COMM_SYS_events2", sizeof(COMM_sys_stack2)/sizeof(COMM_sys_stack2[0])-2,COMM_sys_stack2-1,0);
   ctl_task_run(&sub_task,BUS_PRI_NORMAL,sub_events,NULL,"SUB_events",sizeof(sub_stack)/sizeof(sub_stack[0])-2,sub_stack-1,0);
+
 
   //main loop <-- this is an ARCbus function 
   mainLoop(); 

@@ -45,6 +45,9 @@ enum{CC1101=0,CC2500_1=1, CC2500_2=2};
 #define TxThrBytes 30   
 #define RxThrBytes 30
 
+//data transmit types
+enum{TX_DATA_BUFFER=0,TX_DATA_RANDOM,TX_DATA_PATTERN};
+
 void sub_events(void *);
 void TXRX(void *);
 void radio_interrupts(void);
@@ -61,6 +64,7 @@ char Radio_Read_Status(char addr, int radio_select);
 char Radio_Strobe(char, int radio_select);
 void Radio_Write_Registers(char addr, char value, int radio_select);
 void Radio_Write_Burst_Registers(char,unsigned char *, int, int radio_select);
+unsigned char tx_data_gen(unsigned char *dest,unsigned short size,int mode,unsigned char seed);
 void Reset_Radio(int radio_select);
 void RF_Send_Packet(unsigned char *txBuffer, int size, int radio_select);
 void Write_RF_Settings(int radio_select); 
