@@ -382,6 +382,57 @@ comm_evt_gs_decode();
 
 }
 
+int SD_read(char **argv,unsigned short argc){
+ #define ASCIIOUT_STR  "%c" 
+ char buffer[512];
+ int resp , i;
+  
+  //read from SD card
+ resp=mmcReadBlock(strtol(argv[1],NULL,10),buffer);
+  //print response from SD card
+  printf("%s\r\n",SD_error_str(resp));
+
+        for(i=0;i<9;i++){//changed the 512 to 256 which is a result of changing CHAR TO INT
+
+        if(i<8){
+          printf(ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR "\r\n",
+          buffer[i*28+1],buffer[i*28+2],buffer[i*28+3],buffer[i*28+4],buffer[i*28+5],buffer[i*28+6],buffer[i*28+7],buffer[i*28+8],buffer[i*28+9],buffer[i*28+10],buffer[i*28+11],buffer[i*28+12],buffer[i*28+13],
+          buffer[i*28+14],buffer[i*28+15],buffer[i*28+16],buffer[i*28+17],buffer[i*28+18],buffer[i*28+19],buffer[i*28+20],buffer[i*28+21],buffer[i*28+22],buffer[i*28+23],
+          buffer[i*28+24],buffer[i*28+25],buffer[i*28+26],buffer[i*28+27],buffer[i*28+28],buffer[i*28+29],buffer[i*28+30]);
+          }
+
+        else{
+          printf(ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR ASCIIOUT_STR "\r\n",
+          buffer[i*28+1],buffer[i*28+2],buffer[i*28+3],buffer[i*28+4],buffer[i*28+5],buffer[i*28+6],buffer[i*28+7],buffer[i*28+8],buffer[i*28+9],buffer[i*28+10],buffer[i*28+11],buffer[i*28+12],buffer[i*28+13],
+          buffer[i*28+14],buffer[i*28+15],buffer[i*28+16],buffer[i*28+17],buffer[i*28+18],buffer[i*28+19],buffer[i*28+20],buffer[i*28+21],buffer[i*28+22],buffer[i*28+23],
+          buffer[i*28+24],buffer[i*28+25],buffer[i*28+26],buffer[i*28+27],buffer[i*28+28],buffer[i*28+29],buffer[i*28+30]);
+          }
+        }
+        return 0;
+}
+
+//***************************************MUST WRITE IN BLOCKS OF 512 OR IT WONT WORK!!!!!*******************************************
+int SD_write(char **argv,unsigned short argc){
+char buff[512];
+int mmcReturnValue, result , i;
+
+//populate buffer block
+  for(i=2;i<=argc;i++) {// ignore 0 *argv input (argv[0]--> "SD_write" )
+    strcat(buff,argv[i]); // appends chars from one string to another
+    strcat(buff,"|");     // separates strings with | as strcat eats NULL
+  }
+
+//write to SD card
+  result= mmcWriteBlock(strtol(argv[1],NULL,10),buff); //(unsigned char*) casting my pointer(array) as a char 
+ 
+  if (result>=0){ // check SD write 
+  printf("SD card write success.\r\n");
+  }
+  else{
+    printf("SD card write failed.\r\nError %i\r\n",result);
+  }
+  return 0;
+}
 
 
 //table of commands with help
@@ -398,6 +449,8 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]",helpCmd},
                    {"test","for testing things in code",TestCmd},
                    {"burn", "Pulse the burn line", BurnCmd},
                    {"CMD", "Test Comands[Subsytem][COMMAND] eg[COMM][RF_OFF]", CMD},
+                   {"SDread", "Test Command to read data from the SD card", SD_read},
+                   {"SDwrite", "Test Command to Write daya to the SD card", SD_write},
                    ARC_COMMANDS,//CTL_COMMANDS, ERROR_COMMANDS,
                    //end of list
                    {NULL,NULL,NULL}};

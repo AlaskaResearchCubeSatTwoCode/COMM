@@ -147,16 +147,24 @@ int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigne
 //**********************************************************************************************************************************************************************
 void COMM_events(void *p) __toplevel{
   unsigned int e, count;
-  int i, resp; 
+  int i, resp,mmcReturnValue; 
 
 // code for burn and RF insertion delay 
 //NOTE this must be uncommented for flight code !!!!!
 //int BUS_set_alarm(unsigned char num,ticker time,CTL_EVENT_SET_t *e,CTL_EVENT_SET_t event);
  //In flight code this should be called after insertion delay timer
   COMM_beacon_setup();                            // start beacon timer (dose not start transmission)
-  BUS_set_alarm(BUS_ALARM_0,get_ticker_time()+ANT_DEPLOY_TIME,&COMM_evt2,COMM_EVT2_RF_EN);
-  BUS_set_alarm(BUS_ALARM_1,get_ticker_time()+RF_ON_TIME,&COMM_evt2,COMM_EVT2_BURN_DELAY);
-  mmcInit_card();
+  //BUS_set_alarm(BUS_ALARM_0,get_ticker_time()+ANT_DEPLOY_TIME,&COMM_evt2,COMM_EVT2_RF_EN);
+  //BUS_set_alarm(BUS_ALARM_1,get_ticker_time()+RF_ON_TIME,&COMM_evt2,COMM_EVT2_BURN_DELAY);
+ 
+ //SD card setup
+  mmcReturnValue = mmcInit_card();
+  if (mmcReturnValue==MMC_SUCCESS){ // check good initialization 
+    printf("\rCard initalized Sucessfully\r\n");
+  }
+  else{
+    printf("Check SD card.\r\nInitalized failed.\r\n Error %i\r\n",mmcReturnValue);
+  }
 
 // NOTE should we clear flags or does rest do this ? 
     Reset_Radio(CC2500_1);                  // Reset Radios/initialize status

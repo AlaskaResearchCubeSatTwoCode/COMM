@@ -38,6 +38,7 @@ int __getchar(void){
 
 //******************************************* Main loop****************************************************************************************************************
 void main(void){
+
   //turn on LED's this will flash the LED's during startup
   P7OUT=0x00;
   P7DIR=0xFF;
@@ -61,9 +62,7 @@ void main(void){
   initARCbus(0x13);
 
   //initialize SDcard
-  mmcInit_msp();
-  //intializes SDCard pins
-  //mmc_pins_on();
+   mmcInit_msp();
 
   //setup command receive
   BUS_register_cmd_callback(&COMM_parse);
