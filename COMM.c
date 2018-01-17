@@ -160,7 +160,7 @@ void COMM_events(void *p) __toplevel{
  //SD card setup
   mmcReturnValue = mmcInit_card();
   if (mmcReturnValue==MMC_SUCCESS){ // check good initialization 
-    printf("\rCard initalized Sucessfully\r\n");
+    printf("Card initalized Sucessfully\r\n");
   }
   else{
     printf("Check SD card.\r\nInitalized failed.\r\n Error %i\r\n",mmcReturnValue);
@@ -639,14 +639,11 @@ void COMM_events2(void *p) __toplevel{
       printf("COMM_EVT2_RF_EN\r\n");
 
    }
-     else if(e&COMM_EVT2_BURN_DELAY ){
-      P7OUT |= BIT1;  // Antenna burn indicator LED on
-      printf("COMM_EVT2_BURN_DELAY\r\n");
-      /*  // send CDH I2C command for burn
-      if(err = 0){
-        P7OUT ^= BIT1;  // Toggle antenna burn indicator LED off at the end of burn 
-
-      }*/  
+     else if(e&COMM_EVT2_BURN_DELAY ){//TODO test
+          unsigned char addr = {0x2B}, regi6[3] = {0x60,0x06,0x01},region6[2] = {0x50,0x06};
+          i2c_tx(addr,regi6,3);
+          __delay(500);
+          i2c_tx(addr,region6,2); 
    }
   }
 }

@@ -251,37 +251,29 @@ int beacon_flagCmd(char **argv,unsigned short argc){
 
 int tempCmd(char **argv, unsigned short argc){
   int temp_data[2];
-  temp_select = set_temp_sel(argv[1]);  // set temp you want to talk to
-  *temp_data = temp_read_reg(temp_select);  // read temp vals
+
+  // setup CS pins as outputs if we keep the temp sensors put this in a setup function
+  P5DIR |= BIT6+BIT7;
+  temp_select = 1;  //init CC1101 temp sensor
+  temp_SPI_desel();
+  temp_select = 2;  //init CC2500 temp sensor
+  temp_SPI_desel();
+
+  if((argc<1)  && ((!strcmp(argv[1],"temp1") || (!strcmp(argv[1],"temp2"))))){
+    printf("Incorrect input arguments./r/ntemp [temp#]/r/n");
+    return 0;
+  }
+
+  set_temp_sel(argv[1]);  // set temp you want to talk to
+  *temp_data = temp_read_reg();  // read temp vals
   printf("Temp on the %i and %i.\r\n",temp_data[0],temp_data[1]);
   return 0;
 }
 
-int TestCmd(char **argv,unsigned short argc){
-  
-  set_radio_path(argv[1]);
-  if(argc > 1){
-   radio_SPI_sel (radio_select); 
-   printf("The %s radio has been selected.\r\n", argv[1]);
-   }
-   else{
-   radio_SPI_desel(radio_select);
-   printf("The %s radio has been deselected.\r\n", argv[1]);
-   }
-  return 0;
-}
 
 //TODO: Update for ARC 2
 int BurnCmd(char **argv, unsigned short argc){
-
-  printf("Burn command initiated\r\n");
-  P6DIR |= BIT2 | BIT3;
-  P6OUT |= BIT2 | BIT3;
-  //__delay_cycles(BURN_DELAY);              
-  P6OUT &= ~(BIT2 |BIT3);
-  P6DIR &= ~(BIT2|BIT3);
-  printf("Burn command finished\r\n");
-
+//TODO add I2C command to EPS 
   return 0;
 }
 
@@ -434,6 +426,60 @@ int mmcReturnValue, result , i;
   return 0;
 }
 
+int freq_cmd(char**argv,unsigned short argc){
+  long fcar=437565000,fh,fl,fo,delta; // use long or freq will not fit
+  int change,dsign;
+  char radio;
+  char * end;
+  unsigned char val;
+
+  if(!strcmp(argv[1],"CC1101")){
+    radio = CC1101;
+  }
+  else if(!strcmp(argv[1],"CC2500")){
+    radio = CC2500_1;
+  }
+  else{
+    printf("Enter a the correct radio address/r/n");
+    return 0;
+  }
+  fh=strtol(argv[2],&end,10);       // convert string user input to long int val for high freq input
+  fl=strtol(argv[3],&end,10);
+  if(radio!=255){                  // check radio input, unknown radio is 255
+    printf("\r\n##########\r\ninput paramaters are fH %li and fL %li\r\n",fh,fl);
+    fo=(fh+fl)/2;  // calc input center freq
+    printf("The input center frequency (fo) is %li\r\n",fo);
+    printf("High low frequency delta is %li\r\n",llabs(fh-fl)); 
+    delta=fcar-fo; // calc diff in center freq's 
+    printf("Delta of the center frequencys is %li\r\n",llabs(delta));
+
+ //write reg 0x0f 0x63 where 0xf is the center freq reg and can change by steps of 400 Hz Adjusted in loop
+    if(llabs(delta)>397){  //(fxosc/2^16)=396.7285
+      change=delta/(RF_OSC_F/65536);    //calc change
+      fcar=fcar*(RF_OSC_F/65536);  //(fxosc/2^16)*FERQ[23:0] --> carrier frequency should ==f01+-400 
+
+      if(delta>=0){
+        dsign=1;  // sign of delta is positive 
+        val=0x63+change; // how many "ticks" to change the default ref 0x63 by.
+      }
+      else{
+        dsign=0;  //sign of delta is negative 
+        val=0x63-change; 
+      }
+
+      printf("\r\n##########\r\nAdjusted center frequency projection from %li to --> %li\r\n",fo,(dsign)?fo-(change*400):fo+(change*400)); // (dsign)?... selects the correct opp depending on the sign of delta
+      printf("Changing reg 0x0f from 0x%02x --> 0x%02X\r\n",Radio_Read_Registers(0x0F,radio),val);
+      Radio_Write_Registers(TI_CCxxx0_FREQ0,val,radio); // write reg
+      printf("reg 0x0F writen as 0x%02X. \r\nRead back as 0x%02X.\r\n",val,Radio_Read_Registers(0x0F,radio));
+    }
+    else{
+      printf("Frequency Test passed \r\n");
+    }
+  }
+  else 
+    printf("bad input\r\n");
+return 0;
+}
 
 //table of commands with help
 const CMD_SPEC cmd_tbl[]={{"help"," [command]",helpCmd},
@@ -446,11 +492,11 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]",helpCmd},
                    {"beacon","Toggles the COMM beacon on or off.\n\rCurrently targeting the CC2500_1",beacon_onCmd},
                    {"beacon_flag","Toggles the COMM beacon \"hello\" packet on or off.\n\rCurrently targeting the CC2500_1",beacon_flagCmd},
                    {"temp","grabbing temp data",tempCmd},
-                   {"test","for testing things in code",TestCmd},
                    {"burn", "Pulse the burn line", BurnCmd},
                    {"CMD", "Test Comands[Subsytem][COMMAND] eg[COMM][RF_OFF]", CMD},
                    {"SDread", "Test Command to read data from the SD card", SD_read},
                    {"SDwrite", "Test Command to Write daya to the SD card", SD_write},
+                   {"FrequencyAdjust", "Test Command to read data from the SD card", freq_cmd},
                    ARC_COMMANDS,//CTL_COMMANDS, ERROR_COMMANDS,
                    //end of list
                    {NULL,NULL,NULL}};
