@@ -8,7 +8,7 @@
 //char paTable_CC1101[] = {0x84};  //corresponds to +5dBm
 //char paTable_CC1101[] = {0xC8};  //corresponds to +7dBm
 //char paTable_CC1101[] = {0xC0};  //corresponds to +10dBm 
-///char paTable_CC2500[] = {0xFF};
+//char paTable_CC2500[] = {0xFF};
 
 //char paTableLen=1;
 int Tx_Flag;
@@ -420,7 +420,7 @@ Radio_Write_Registers(TI_CCxxx0_PKTLEN,   0xFF, CC2500_1); // Packet length.
 Radio_Write_Registers(TI_CCxxx0_ADDR,     0x01, CC2500_1); // Device address.
 //Radio_Write_Registers(TI_CCxxx0_SYNC1,    0x7E, CC2500_1);  / SYNC Word High Byte (SYNC0 sync word low byte)
 //NOTE TI_CCxxx0_SYNC1 by default is set to 0xd3
-Radio_Write_Registers(TI_CCxxx0_PATABLE,  0xC0, CC2500_1); //Set PA to 10dBm.
+Radio_Write_Registers(TI_CCxxx0_PATABLE,  0xff, CC2500_1); //Set PA to 1 dBm.
 break;
  }
 }

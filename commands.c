@@ -187,11 +187,11 @@ int radio_resetCmd(char **argv,unsigned short argc){
     Reset_Radio(CC2500_1);
     __delay_cycles(800);                         // Wait for radio to be ready before writing registers.cc1101.pdf Table 13 indicates a power-on start-up time of 150 us for the crystal to be stable
     
-    Write_RF_Settings(CC1101);                // Write radios Settings
-    Write_RF_Settings(CC2500_1);                // Write radios Settings
+    Write_RF_Settings(CC1101);                   // Write radios Settings
+    Write_RF_Settings(CC2500_1);                 // Write radios Settings
 
     Radio_Strobe(TI_CCxxx0_SRX, CC1101);          //Initialize CCxxxx in Rx mode
-    Radio_Strobe(TI_CCxxx0_SRX, CC2500_1);          //Initialize CCxxxx in Rx mode
+    Radio_Strobe(TI_CCxxx0_SRX, CC2500_1);        //Initialize CCxxxx in Rx mode
 
   }
   else{                     
@@ -481,6 +481,13 @@ int freq_cmd(char**argv,unsigned short argc){
 return 0;
 }
 
+
+// keep track of comm software version 
+//void version_cmd(char** argv,unsigned short argc){
+void version_cmd(){
+  printf("This current software build is Rev3.1 (5/29/2018)\r\n");
+}
+
 //table of commands with help
 const CMD_SPEC cmd_tbl[]={{"help"," [command]",helpCmd},
                    {"status","",status_Cmd},
@@ -497,6 +504,7 @@ const CMD_SPEC cmd_tbl[]={{"help"," [command]",helpCmd},
                    {"SDread", "Test Command to read data from the SD card", SD_read},
                    {"SDwrite", "Test Command to Write daya to the SD card", SD_write},
                    {"FrequencyAdjust", "Test Command to read data from the SD card", freq_cmd},
+                   {"version", "Display currnt Comm code version", version_cmd},
                    ARC_COMMANDS,//CTL_COMMANDS, ERROR_COMMANDS,
                    //end of list
                    {NULL,NULL,NULL}};

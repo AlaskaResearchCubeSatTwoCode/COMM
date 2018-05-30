@@ -642,7 +642,7 @@ void COMM_events2(void *p) __toplevel{
      else if(e&COMM_EVT2_BURN_DELAY ){//TODO test
           unsigned char addr = {0x2B}, regi6[3] = {0x60,0x06,0x01},region6[2] = {0x50,0x06};
           i2c_tx(addr,regi6,3);
-          __delay(500);
+          __delay_cycles(500);
           i2c_tx(addr,region6,2); 
    }
   }
@@ -742,7 +742,7 @@ void beacon_tick(void) __interrupt[TIMER2_A0_VECTOR]{
       if(sec == 1){  // reset counter for beacon @ 10 seconds
         P7OUT^=BIT6; //toggle bit 5
         if (beacon_on){
-          //ctl_events_set_clear(&COMM_evt,COMM_EVT_CC2500_1_TX_START,0);     //Send to Radio to transmit mode
+          //ctl_events_set_clear(&COMM_evt,COMM_EVT_CC2500_1_TX_START,0);   //Send to Radio to transmit mode
           ctl_events_set_clear(&COMM_evt,COMM_EVT_CC2500_1_TX_START,0);     //Send to Radio to transmit mode
         }
         sec=0;  // reset 

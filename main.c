@@ -55,8 +55,8 @@ void main(void){
   //initialize UART
   UCA2_init_UART(UART_PORT,UART_TX_PIN_NUM,UART_RX_PIN_NUM);
  
- //TODO test this
- initI2C(3,7,6);  //set up UCB1 I2C bus function(unsigned int port,unsigned int sda,unsigned int scl)
+  //TODO test this
+  initI2C(3,7,6);  //set up UCB1 I2C bus function(unsigned int port,unsigned int sda,unsigned int scl)
 
   //setup bus interface
   initARCbus(0x13);
@@ -68,7 +68,6 @@ void main(void){
   BUS_register_cmd_callback(&COMM_parse);
 
 
-   
   // initialize stacks (3) 
   memset(terminal_stack,0xcd,sizeof(terminal_stack));                                                     // write known values into the stack 
   terminal_stack[0]=terminal_stack[sizeof(terminal_stack)/sizeof(terminal_stack[0])-1]=0xfeed;            // put marker values at the words before/after the stack
