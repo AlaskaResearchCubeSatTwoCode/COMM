@@ -103,7 +103,7 @@ char status1, status2, radio, state1, state2;
 return 0;
 }
 
-// streams data from radio argv[1]=ADR 
+// streams data from radio argv[1]=ADR i.e stream CC1101 random
 //TODO   (update for second radio)
 int streamCmd(char **argv,unsigned short argc){
 

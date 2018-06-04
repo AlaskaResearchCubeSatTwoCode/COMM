@@ -42,8 +42,8 @@ enum power_level{power1=-55,power2=-30, power3= -28, power4 = -26, power5 = -24,
 
 enum{CC1101=0,CC2500_1=1, CC2500_2=2};
 //Create event flags for the radios
-#define TxThrBytes 30   
-#define RxThrBytes 30
+#define TxThrBytes 33   
+#define RxThrBytes 32 //NOTE check this 
 
 //data transmit types
 enum{TX_DATA_BUFFER=0,TX_DATA_RANDOM,TX_DATA_PATTERN};

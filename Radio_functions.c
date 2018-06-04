@@ -381,22 +381,22 @@ case CC2500_1:
 // GDO0 signal selection = ( 6) Asserts when sync word has been sent / received, and de-asserts at the end of the packet
 // GDO2 signal selection = (11) Serial Clock
 
-Radio_Write_Registers(TI_CCxxx0_IOCFG2,   0x02, CC2500_1);  // GDO2 output pin config. TX
+Radio_Write_Registers(TI_CCxxx0_IOCFG2,   0x42, CC2500_1);  // GDO2 output pin config. TX 0x02 programming funcitonality w/ interrupt inverted BIT6 --> 1
 Radio_Write_Registers(TI_CCxxx0_IOCFG0,   0x00, CC2500_1);  // GDO0 output pin config. RX
-Radio_Write_Registers(TI_CCxxx0_FIFOTHR,  0x07, CC2500_1);  // FIFO Threshold: 21 byte in TX FIFO and 44 in RX FIFO
+Radio_Write_Registers(TI_CCxxx0_FIFOTHR,  0x07, CC2500_1);  // FIFO Threshold: 33 byte in TX FIFO and 32 in RX FIFO
 
 Radio_Write_Registers(TI_CCxxx0_FSCTRL0,  0x00, CC2500_1); // Freq synthesizer control.
 Radio_Write_Registers(TI_CCxxx0_FSCTRL1,  0x08, CC2500_1); // Freq synthesizer control.
 Radio_Write_Registers(TI_CCxxx0_FREQ2,    0x5C, CC2500_1); // Freq control word, high byte
 Radio_Write_Registers(TI_CCxxx0_FREQ1,    0x4E, CC2500_1); // Freq control word, mid byte.
 Radio_Write_Registers(TI_CCxxx0_FREQ0,    0xC3, CC2500_1); // Freq control word, low byte.
-Radio_Write_Registers(TI_CCxxx0_MDMCFG4,  0x2B, CC2500_1); // Modem configuration.
-Radio_Write_Registers(TI_CCxxx0_MDMCFG3,  0xF8, CC2500_1); // Modem configuration.
+Radio_Write_Registers(TI_CCxxx0_MDMCFG4,  0x2A, CC2500_1); // Modem configuration.
+Radio_Write_Registers(TI_CCxxx0_MDMCFG3,  0x83, CC2500_1); // Modem configuration.
 Radio_Write_Registers(TI_CCxxx0_MDMCFG2,  0x03, CC2500_1); // Modem configuration. FSK
 Radio_Write_Registers(TI_CCxxx0_MDMCFG1,  0x22, CC2500_1); // Modem configuration.
 Radio_Write_Registers(TI_CCxxx0_MDMCFG0,  0xF8, CC2500_1); // Modem configuration.
 Radio_Write_Registers(TI_CCxxx0_CHANNR,   0x00, CC2500_1); // Channel number.
-Radio_Write_Registers(TI_CCxxx0_DEVIATN,  0x50, CC2500_1); // Modem dev (when FSK mod en) for FSK(47.607 kHz Deviation)
+Radio_Write_Registers(TI_CCxxx0_DEVIATN,  0x34, CC2500_1); // Modem dev (when FSK mod en) for FSK(19.2 kHz Deviation)
 Radio_Write_Registers(TI_CCxxx0_FREND1,   0xB6, CC2500_1); // Front end RX configuration.
 Radio_Write_Registers(TI_CCxxx0_FREND0,   0x10, CC2500_1); // Front end RX configuration.
 Radio_Write_Registers(TI_CCxxx0_MCSM1 ,   0x0F, CC2500_1); // [3:2] RXOFF_MODE state after packet received: (00) IDLE, (11) RX.

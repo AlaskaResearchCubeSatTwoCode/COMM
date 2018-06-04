@@ -505,7 +505,7 @@ void COMM_events(void *p) __toplevel{
           state = TX_END;
         }
       }else{
-          Radio_Write_Registers(TI_CCxxx0_PKTLEN, 1, radio_select); // Pre-program the packet length
+          Radio_Write_Registers(TI_CCxxx0_PKTLEN, 1, radio_select);                     // Pre-program the packet length
           Radio_Write_Registers(TI_CCxxx0_PKTCTRL0, 0x02, radio_select);                // Infinite byte mode
           //fill buffer with data
           data_seed=tx_data_gen(Tx1Buffer,64,data_mode,data_seed);
@@ -545,7 +545,7 @@ void COMM_events(void *p) __toplevel{
         }
         else 
         {
-         data_seed=tx_data_gen(Tx1Buffer,TxThrBytes,data_mode,data_seed);
+         data_seed=tx_data_gen(Tx1Buffer,TxThrBytes,data_mode,data_seed); //NOTE COMM dips out here on stream command 
          Radio_Write_Burst_Registers(TI_CCxxx0_TXFIFO, Tx1Buffer, TxThrBytes, radio_select);
          state = TX_RUNNING;
         }
@@ -653,7 +653,7 @@ void Radio_Interrupt_Setup(void){ // Enable RX interrupts only!  TX interrupt en
   // Use GDO0 and GDO2 as interrupts to control TX/RX of radio
   P1DIR = 0;			        // Port 1 configured as inputs (i.e. GDO0 and GDO2 are inputs)
   P1IES = 0;          // flag is set with a low to high transition
-  P1IFG = 0;// Clear all flags <-- do this after IES as it will set a BIT2 high (pg 413 fam)
+  P1IFG = 0;          // Clear all flags <-- do this after IES as it will set a BIT2 high (pg 413 fam)
   P1IE |= CC2500_1_GDO2|CC2500_1_GDO0|CC1101_GDO0|CC1101_GDO2; // Enable GDO0 and GDO2 interrupts
 }
 
