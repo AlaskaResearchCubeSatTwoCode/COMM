@@ -244,6 +244,8 @@ void COMM_events(void *p) __toplevel{
     }
   //******************************************************************************************* COMM_EVT_CC1101_TX_START
     if(e&COMM_EVT_CC1101_TX_START){                 //INITIALIZE TX START
+     
+      printf("\r\nCOMM_EVT_CC1101_TX_START\r\n");
       state = TX_START; 
       TxBufferPos = 0;
       radio_select = CC1101;  // sel radio
@@ -341,8 +343,9 @@ void COMM_events(void *p) __toplevel{
     {
       //printf("TX THR TxBytesRemaining = %d\r\n", TxBytesRemaining);        
       // Entering here indicates that the TX FIFO has emptied to below TX threshold.
-      // Need to write TXThrBytes (30 bytes) from TXBuffer then move TxBufferPos by TxThrBytes
+      // Need to write TXThrBytes (33 bytes) from TXBuffer then move TxBufferPos by TxThrBytes
       // Then wait until interrupt received again or go to TX_END.
+      printf("\r\nCOMM_EVT_CC1101_TX_THR\r\n");
       radio_select = CC1101;  // sel radio
       P1IE |= CC1101_GDO2;
 
@@ -586,9 +589,7 @@ void COMM_events(void *p) __toplevel{
         printf("%x \r\n",Radio_Read_Status(TI_CCxxx0_MARCSTATE,radio_select)); 
       }
     }
-
-    // TODO add in and fix once we get one radio transmitting and receiving. 
-    } 
+   } 
 } //end for loop
  
 
@@ -689,12 +690,12 @@ void Port1_ISR (void) __ctl_interrupt[PORT1_VECTOR]{
             }
         break;
 // Radio CC1101 interrupts
-        case CC1101_GDO2_IV: // [CC1101_GDO0] RX is set up to assert when RX FIFO is greater than FIFO_THR.  This is an RX function only
+        case CC1101_GDO0_IV: // [CC1101_GDO0] RX is set up to assert when RX FIFO is greater than FIFO_THR.  This is an RX function only
           P7OUT ^= BIT4;
           ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_RX_READ,0);
         break; 
     //TX state
-        case CC1101_GDO0_IV: //[CC1101_GDO2] TX is set up to assert when TX FIFO is above FIFO_THR threshold.  
+        case CC1101_GDO2_IV: //[CC1101_GDO2] TX is set up to assert when TX FIFO is above FIFO_THR threshold.  
                                  //Interrupts on falling edge, i.e. when TX FIFO falls below FIFO_THR
     // Actual interrupt SR
             switch(state)
@@ -703,14 +704,14 @@ void Port1_ISR (void) __ctl_interrupt[PORT1_VECTOR]{
                      break;
                 case TX_START:  //Called on falling edge of GDO2, Tx FIFO < threshold, Radio in TX mode, Packet in progress
                       state = TX_RUNNING;
-                      //ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_TX_THR,0);
+                      ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_TX_THR,0);
                      break;
                 case TX_RUNNING: //Called on falling edge of GDO2, Tx FIFO < threshold, Radio in TX mode, Packet in progress
-                      //ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_TX_THR,0); 
+                      ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_TX_THR,0); 
                      break;
                 case TX_END:  //Called on falling edge of GDO2, Tx FIFO < threshold, Radio in TX mode, Last part of packet to transmit
                      state = IDLE;
-                     // ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_TX_END,0);
+                     ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_TX_END,0);
                      break;
                 default:
                   break;          
@@ -742,8 +743,7 @@ void beacon_tick(void) __interrupt[TIMER2_A0_VECTOR]{
       if(sec == 1){  // reset counter for beacon @ 10 seconds
         P7OUT^=BIT6; //toggle bit 5
         if (beacon_on){
-          //ctl_events_set_clear(&COMM_evt,COMM_EVT_CC2500_1_TX_START,0);   //Send to Radio to transmit mode
-          ctl_events_set_clear(&COMM_evt,COMM_EVT_CC2500_1_TX_START,0);     //Send to Radio to transmit mode
+          ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_TX_START,0);     //Send to Radio to transmit mode
         }
         sec=0;  // reset 
       }

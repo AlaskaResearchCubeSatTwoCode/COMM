@@ -298,18 +298,18 @@ switch (radio_select){
 case CC1101:  
 // Register Values obtained via Smart Studio for CC1101
 // Settings:
-//  Carrier Freq: 437.565 MHz (437.564972)
+//  Carrier Freq: 437.565 MHz (437.57)
 //  Xtal Freq: 26 MHz
 //  Data rate: 9.6 kBaud (9.59587)
 //  Deviation: 4.8 kHz (4.760742)
 //  Modulation format: 2-FSK
 //  Channel spacing: 199.951172 kHz (default)
 //  Rx filter BW: 42 kHz (58.035714 kHz)
-//  Tx power 5 dBm
+//  Tx power 10 dBm
 //  Using GDO0 and GDO2 to manage transmit/receive buffers
 Radio_Write_Registers(TI_CCxxx0_IOCFG0,   0x00, CC1101);   // Associated to the RX FIFO: Asserts when RX FIFO is filled at or above the RX FIFO threshold. De-asserts when RX FIFO is drained below the same threshold
-Radio_Write_Registers(TI_CCxxx0_IOCFG2,   0x02, CC1101);   // Associated to the TX FIFO: Asserts when TX FIFO is filled at or above the TX FIFO threshold. De-asserts when TX FIFO is drained below the same threshold.
-Radio_Write_Registers(TI_CCxxx0_FIFOTHR,  0x47, CC1101);   // FIFO Threshold [3:0] 7 = Bytes in TX FIFO = 33, Bytes in RX FIFO = 32
+Radio_Write_Registers(TI_CCxxx0_IOCFG2,   0x42, CC1101);   // Associated to the TX FIFO: Asserts when TX FIFO is filled at or above the TX FIFO threshold. De-asserts when TX FIFO is drained below the same threshold.
+Radio_Write_Registers(TI_CCxxx0_FIFOTHR,  0x07, CC1101);   // FIFO Threshold [3:0] 7 = Bytes in TX FIFO = 33, Bytes in RX FIFO = 32
                                                            // Bit 6 = 1: Test1=0x35 and Test2=0x81 when waking from SLEEP.  ADC_RETENTION bit should be set to 1 before going into SLEEP mode if settings with an RX filter bandwidth below 325 kHz are wanted at time of wake-up.FIFO Threshold
 Radio_Write_Registers(TI_CCxxx0_FSCTRL0,  0x00, CC1101);
 Radio_Write_Registers(TI_CCxxx0_FSCTRL1,  0x0C, CC1101);
@@ -381,8 +381,8 @@ case CC2500_1:
 // GDO0 signal selection = ( 6) Asserts when sync word has been sent / received, and de-asserts at the end of the packet
 // GDO2 signal selection = (11) Serial Clock
 
-Radio_Write_Registers(TI_CCxxx0_IOCFG2,   0x42, CC2500_1);  // GDO2 output pin config. TX 0x02 programming funcitonality w/ interrupt inverted BIT6 --> 1
 Radio_Write_Registers(TI_CCxxx0_IOCFG0,   0x00, CC2500_1);  // GDO0 output pin config. RX
+Radio_Write_Registers(TI_CCxxx0_IOCFG2,   0x42, CC2500_1);  // GDO2 output pin config. TX 0x02 programming functionality w/ interrupt inverted BIT6 --> 1
 Radio_Write_Registers(TI_CCxxx0_FIFOTHR,  0x07, CC2500_1);  // FIFO Threshold: 33 byte in TX FIFO and 32 in RX FIFO
 
 Radio_Write_Registers(TI_CCxxx0_FSCTRL0,  0x00, CC2500_1); // Freq synthesizer control.

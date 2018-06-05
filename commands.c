@@ -103,19 +103,24 @@ char status1, status2, radio, state1, state2;
 return 0;
 }
 
-// streams data from radio argv[1]=ADR i.e stream CC1101 random
-//TODO   (update for second radio)
+// streams data from radio argv[1]=ADR i.e "stream CC1101 value 42" or "stream CC2500_1 random"
 int streamCmd(char **argv,unsigned short argc){
 
 // input checking 
-  if(!strcmp(argv[1],"value")){
-    data_mode=TX_DATA_PATTERN;
-    data_seed=atoi(argv[2]); // arg to stream (0xXX)
+  //check radio to stream to 
+  if(set_radio_path(argv[1])){                                         // this will set the radio_select var as well as check it is valid-->return 0;
+    printf("Radio entered %s !set_radio_path = %i.\r\nPlease enter an avalible radio:\r\nCC1101\r\nCC2500_1\r\n",argv[1],!set_radio_path(argv[1]));
+    return -1;
   }
-  else if(!strcmp(argv[1],"random")){
+  // check data to be streamed 
+  if(!strcmp(argv[2],"value")){
+    data_mode=TX_DATA_PATTERN;
+    data_seed=atoi(argv[3]); // arg to stream (0xXX)
+  }
+  else if(!strcmp(argv[2],"random")){
     data_mode=TX_DATA_RANDOM;
-    if(argc==2){
-      data_seed=atoi(argv[2]);
+    if(argc==3){
+      data_seed=atoi(argv[3]);
       if(data_seed==0){
         data_seed=1;
       }
@@ -124,10 +129,17 @@ int streamCmd(char **argv,unsigned short argc){
       data_seed=1;
     }
   }
-  // input case statment to pick from enum table in COMM.h
+  // trigger transmission start
+  if(radio_select == CC1101){
+  printf("Stream Tx CC1101.\r\n");
+  ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_TX_START,0); 
+  }
+  else{
+  printf("Stream Tx CC2500.\r\n");
   ctl_events_set_clear(&COMM_evt,COMM_EVT_CC2500_1_TX_START,0); 
-  printf("Push any key to stop\r\n");
-  getchar(); // waits for any char 
+  }
+  printf("Push any key to stop\r\n");                                     
+  getchar();                                                             // waits for any char 
   Radio_Write_Registers(TI_CCxxx0_PKTCTRL0, 0x00, radio_select);         // Fixed byte mode
   state = TX_END;
   return 0;
@@ -484,14 +496,15 @@ return 0;
 
 // keep track of comm software version 
 //void version_cmd(char** argv,unsigned short argc){
-void version_cmd(){
-  printf("This current software build is Rev3.1 (5/29/2018)\r\n");
+int version_cmd(char**argv,unsigned short argc){
+  printf("This current software build is Rev3.1 (5/29/2018)\r\nTransmitted CC2500 stream 6/4/2018.");
+  return 0;
 }
 
 //table of commands with help
 const CMD_SPEC cmd_tbl[]={{"help"," [command]",helpCmd},
                    {"status","",status_Cmd},
-                   {"stream","[zeros|ones|[value [val]]]\r\n""Stream data from radio.\n\r",streamCmd},
+                   {"stream","[radio] [random/value] [seed(a number)]\r\n""Stream data from radio.\n\r",streamCmd},
                    {"writereg","Writes data to radio register\r\n [radio] [adress] [data].\n\r",writeReg},
                    {"readreg","reads data from a radio register\r\n [radio] [adrss].\n\r",readReg},
                    {"power","Changes the transmit power of the radio [radio][power].\n\rex. CC2500_1 -24\n\r",powerCmd},
