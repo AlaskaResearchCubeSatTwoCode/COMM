@@ -148,16 +148,8 @@ int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigne
 void COMM_events(void *p) __toplevel{
   unsigned int e, count;
   int i, resp,mmcReturnValue; 
-
-// code for burn and RF insertion delay 
-//NOTE this must be uncommented for flight code !!!!!
-//int BUS_set_alarm(unsigned char num,ticker time,CTL_EVENT_SET_t *e,CTL_EVENT_SET_t event);
- //In flight code this should be called after insertion delay timer
-  COMM_beacon_setup();                            // start beacon timer (dose not start transmission)
-  //BUS_set_alarm(BUS_ALARM_0,get_ticker_time()+ANT_DEPLOY_TIME,&COMM_evt2,COMM_EVT2_RF_EN);
-  //BUS_set_alarm(BUS_ALARM_1,get_ticker_time()+RF_ON_TIME,&COMM_evt2,COMM_EVT2_BURN_DELAY);
  
- //SD card setup
+ //SD card check
   mmcReturnValue = mmcInit_card();
   if (mmcReturnValue==MMC_SUCCESS){ // check good initialization 
     printf("Card initalized Sucessfully\r\n");
@@ -182,6 +174,13 @@ void COMM_events(void *p) __toplevel{
   Radio_Strobe(TI_CCxxx0_SRX, CC2500_1);          //Initialize CCxxxx in Rx mode
   Radio_Strobe(TI_CCxxx0_SRX, CC1101);            //Initialize CCxxxx in Rx mode
 
+  // code for burn and RF insertion delay 
+  //NOTE this must be uncommented for flight code !!!!!
+  //int BUS_set_alarm(unsigned char num,ticker time,CTL_EVENT_SET_t *e,CTL_EVENT_SET_t event);
+  //In flight code this should be called after insertion delay timer
+  COMM_beacon_setup();                            // start beacon timer (dose not start transmission)
+  //BUS_set_alarm(BUS_ALARM_0,get_ticker_time()+ANT_DEPLOY_TIME,&COMM_evt2,COMM_EVT2_RF_EN);
+  //BUS_set_alarm(BUS_ALARM_1,get_ticker_time()+RF_ON_TIME,&COMM_evt2,COMM_EVT2_BURN_DELAY);
   ctl_events_init(&COMM_evt,0);                   //Initialize Event
 
   //endless loop
@@ -251,17 +250,18 @@ void COMM_events(void *p) __toplevel{
       radio_select = CC1101;  // sel radio
       P1IE |= CC1101_GDO2;
       // "package" beacon data 
-        for(i=0;i<COMM_TXHEADER_LEN;i++){                                             //LOAD UP HEADER
-          Tx1Buffer[i]=__bit_reverse_char(Tx1_Header[i]);                             //AX.25 octets are sent LSB first
+        for(i=0;i<COMM_TXHEADER_LEN;i++){                                                //LOAD UP HEADER
+          Tx1Buffer[i]=__bit_reverse_char(Tx1_Header[i]);                                //AX.25 octets are sent LSB first
         }
 
-        if(!beacon_flag){                                                                        //SEND HELLO MESSAGE (predefined) if flag is low
-          Tx1Buffer_Len=COMM_TXHEADER_LEN+sizeof(Packet_WBitshort);                            //Set length of message
+        if(!beacon_flag){                                           //SEND HELLO MESSAGE (predefined) if flag is low
+          printf("Sending Hello Message\r\n");
+          Tx1Buffer_Len=COMM_TXHEADER_LEN+sizeof(Packet_WBitshort);                     //Set length of message
           for(i=0;i<sizeof(Packet_WBitshort);i++){                 
-            Tx1Buffer[i+COMM_TXHEADER_LEN]=__bit_reverse_char(Packet_WBitshort[i]);              //load message after header
+            Tx1Buffer[i+COMM_TXHEADER_LEN]=__bit_reverse_char(Packet_WBitshort[i]);     //load message after header
           }
         } 
-        else {                                                                      //SEND STATUS MESSAGE from SPI stuff
+        else {                                                      //SEND STATUS MESSAGE from SPI stuff
           Tx1Buffer_Len=COMM_TXHEADER_LEN+(arcBus_stat.spi_stat.len)+1;               //Set length of message: HeaderLen+(arcbusLen)+1 for carriage return
           for(i=0;i<arcBus_stat.spi_stat.len;i++) {                                   //load message after header
             Tx1Buffer[i+COMM_TXHEADER_LEN]=__bit_reverse_char(arcBus_stat.spi_stat.rx[i]);
@@ -334,6 +334,7 @@ void COMM_events(void *p) __toplevel{
           Radio_Write_Burst_Registers(TI_CCxxx0_TXFIFO, Tx1Buffer, 64, radio_select); // Write first 64 TX data bytes to TX FIFO
           state = TX_RUNNING;
       }
+      //printf("Tx1Buffer:/r/n %s/r/n",Tx1Buffer); // format Tx1buffer for output
 
       Radio_Strobe(TI_CCxxx0_STX, radio_select);                                                  // Set radio state to Tx
    }
@@ -345,7 +346,6 @@ void COMM_events(void *p) __toplevel{
       // Entering here indicates that the TX FIFO has emptied to below TX threshold.
       // Need to write TXThrBytes (33 bytes) from TXBuffer then move TxBufferPos by TxThrBytes
       // Then wait until interrupt received again or go to TX_END.
-      printf("\r\nCOMM_EVT_CC1101_TX_THR\r\n");
       radio_select = CC1101;  // sel radio
       P1IE |= CC1101_GDO2;
 
@@ -636,6 +636,7 @@ void COMM_events2(void *p) __toplevel{
       //******************************************************************************************* COMM_EVT_STATUS_REQ
       if(e&COMM_EVT2_RF_EN){
       // set beacon flag on here. when beacon flag off we can still RX but no TX
+      beacon = 1; // enable transmit  
       P7OUT |= BIT0; // RF enabled indicator LED
       printf("COMM_EVT2_RF_EN\r\n");
 
@@ -737,10 +738,12 @@ void COMM_beacon_setup(void){    //enable 10 sec interrupt
 }
 
 //================[Time Tick interrupt]=========================
+// TODO add radio status checks (reset if nessesary) to beacon tick
+//  This is to avoid getting stuck in a bad radio state
 void beacon_tick(void) __interrupt[TIMER2_A0_VECTOR]{
       P7OUT^=BIT7; //toggle bit 7
       sec++; // increment sec
-      if(sec == 1){  // reset counter for beacon @ 10 seconds
+      if(sec == 1){  // reset counter for beacon
         P7OUT^=BIT6; //toggle bit 5
         if (beacon_on){
           ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_TX_START,0);     //Send to Radio to transmit mode
@@ -748,7 +751,6 @@ void beacon_tick(void) __interrupt[TIMER2_A0_VECTOR]{
         sec=0;  // reset 
       }
 }
-
 
 
 

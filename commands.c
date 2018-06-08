@@ -131,12 +131,12 @@ int streamCmd(char **argv,unsigned short argc){
   }
   // trigger transmission start
   if(radio_select == CC1101){
-  printf("Stream Tx CC1101.\r\n");
-  ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_TX_START,0); 
+    printf("Stream Tx CC1101.\r\n");
+    ctl_events_set_clear(&COMM_evt,COMM_EVT_CC1101_TX_START,0); 
   }
   else{
-  printf("Stream Tx CC2500.\r\n");
-  ctl_events_set_clear(&COMM_evt,COMM_EVT_CC2500_1_TX_START,0); 
+    printf("Stream Tx CC2500.\r\n");
+    ctl_events_set_clear(&COMM_evt,COMM_EVT_CC2500_1_TX_START,0); 
   }
   printf("Push any key to stop\r\n");                                     
   getchar();                                                             // waits for any char 
@@ -252,6 +252,7 @@ int beacon_flagCmd(char **argv,unsigned short argc){
       beacon_flag=1;
     }else if(!strcmp(argv[1],"off")){
       beacon_flag=0;
+       state = TX_END;
     }else{
       printf("Error : Unknown argument \"%s\"\r\n",argv[1]);
       return -2;
