@@ -22,7 +22,9 @@ int comm_evt_gs_decode(void){// this is called from RX_event!
     // Check destination address (all bit reversed!)
         if((RxBuffer[0] == 0x69) && (RxBuffer[1] == 0x19) && (RxBuffer[2] == 0x66) && (RxBuffer[3] == 0x29) && (RxBuffer[4] == 0x05) && (RxBuffer[5] == 0x02)){
            printf("Destination address good!\r\n");
-        } else{ return ERR_BAD_COMM_DEST_ADDR; }
+        }else{ 
+          printf("Error bad Comm Destination Address");
+          return ERR_BAD_COMM_DEST_ADDR; }
     // Check source address (all bit reversed!)
         if((RxBuffer[7] == 0x75) && (RxBuffer[8] == 0x19) && (RxBuffer[9] == 0x76) && (RxBuffer[10] == 0x61) && (RxBuffer[11] == 0x0D) && (RxBuffer[12] == 0x21)){
         printf("Source address good!\r\n");

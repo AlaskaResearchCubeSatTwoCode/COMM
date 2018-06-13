@@ -636,7 +636,7 @@ void COMM_events2(void *p) __toplevel{
       //******************************************************************************************* COMM_EVT_STATUS_REQ
       if(e&COMM_EVT2_RF_EN){
       // set beacon flag on here. when beacon flag off we can still RX but no TX
-      beacon = 1; // enable transmit  
+      beacon_on = 1; // enable transmit  
       P7OUT |= BIT0; // RF enabled indicator LED
       printf("COMM_EVT2_RF_EN\r\n");
 

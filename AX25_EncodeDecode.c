@@ -438,7 +438,8 @@ void Reverse_Scramble_Transition_Stuff(unsigned char *indat, unsigned int inlen)
     }  
   }
 
-//  PrintBufferBitInv(indat, inlen);
+printf("Reverse transition and unscrampled packet is:\r\n");
+PrintBufferBitInv(indat, inlen);
 
 
 //search for flag 0111 1110, align on byte boundaries, first search for zero, then six ones, then zero.
