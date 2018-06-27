@@ -117,6 +117,8 @@ const char Hello[126]="This is ALASKA RESEARCH CUBESAT. Please email dlthorsen@a
 //  P           0x50          0xA0
 // space        0x20          0x40
 
+
+
 void CRC_CCITT_Generator(unsigned char *dat, unsigned int *len){
   int i,n;
   unsigned short FCS, SR=0xFFFF;
@@ -438,8 +440,8 @@ void Reverse_Scramble_Transition_Stuff(unsigned char *indat, unsigned int inlen)
     }  
   }
 
-printf("Reverse transition and unscrampled packet is:\r\n");
-PrintBufferBitInv(indat, inlen);
+//printf("Reverse transition and unscrampled packet is:\r\n");
+//PrintBufferBitInv(indat, inlen);
 
 
 //search for flag 0111 1110, align on byte boundaries, first search for zero, then six ones, then zero.
@@ -486,7 +488,7 @@ PrintBufferBitInv(indat, inlen);
             break;
         case 8:     //Found FLAG BYTE load next bytes to RxBuffer unless it is another FLAG BYTE   ****Need to make sure everything has been initialized correctly ******
         if(firsteight == 0) {
-        //  printf("case 8 found FLAG BYTE\r\n");
+          printf("case 8 found FLAG BYTE\r\n");
           firsteight = 1;
         }
           if((indat[k] & datmask) != 0){                     //put in one
@@ -498,17 +500,17 @@ PrintBufferBitInv(indat, inlen);
           }
           if(RxBit < 7){                                     // if not last bit in RxBuffer[k]
             RXMASK = RXMASK>>1;                              // shift to next bit in RxBuffer[k]
-            RxBit=RxBit+1;                                  // increment bit counter for RxBuffer[k]
+            RxBit=RxBit+1;                                   // increment bit counter for RxBuffer[k]
           } else {                                           // just processed last bit in RxBuffer[k]
              RXMASK = 0x80;                                  // reset outdatmask to point to MSB
              RxBit=0;                                        // reset bit pointer for RxBuffer[k]
              if(RxBuffer[RxBufferPos] != 0x7E){              // If didn't receive another FLAG byte, save else dump byte
-               if(RxBuffer[RxBufferPos] != firstbyte){       // Not what I expect for first byte of packet!  Start over!
-          //      printf("Not Good RxBuffer[%d] = 0x%02x\r\n",RxBufferPos,RxBuffer[RxBufferPos]);
+               if(RxBuffer[RxBufferPos] != firstbyte){       // Not what I expect for first byte of packet!  Start over! ie asci K 
+                printf("Not Good RxBuffer[%d] = 0x%02x\r\n",RxBufferPos,RxBuffer[RxBufferPos]);
                 firsteight=0;
                 RXFLAG = 0;
                } else {
-          //     printf("Good RxBuffer[%d] = 0x%02x\r\n",RxBufferPos,__bit_reverse_char(RxBuffer[RxBufferPos]));
+                printf("Good RxBuffer[%d] = 0x%02x\r\n",RxBufferPos,__bit_reverse_char(RxBuffer[RxBufferPos]));
                 RxBufferPos=RxBufferPos+1;                   // increment to next byte in RxBuffer
                 ones = 0;
                 RXFLAG = 9;

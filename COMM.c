@@ -45,18 +45,19 @@ void sub_events(void *p) __toplevel{ // note most of this setup is taken care of
 //******************* COMMAND TO POWER OFF??? NOTHING HAPPENING HERE **************
     if(e&SUB_EV_PWR_OFF){
       puts("System Powering Down\r\n");                                             //print message
-      beacon_on = 0;
+      P7OUT ^= 0xFF;
+     // beacon_on = 0;
     }
 
 //******************* COMMAND TO POWER ON??? NOTHING HAPPENING HERE **************
     if(e&SUB_EV_PWR_ON){
       puts("System Powering Up\r\n");                                               //print message
-      beacon_on = 1;
+      P7OUT ^= 0xFF;
+      //beacon_on = 1;
     }
 
 //******************* SEND COMM STATUS TO CDH ***************************
-//NOTE when I2C commands are fixed this can be updated for use 
-  /*  if(e&SUB_EV_SEND_STAT){
+    if(e&SUB_EV_SEND_STAT){
       puts("Sending status\r\n");                                                     //send status
       ptr=BUS_cmd_init(buf,CMD_COMM_STAT);                                            //setup packet
       for(i=0;i<sizeof(COMM_STAT);i++){                                               //fill in telemetry data
@@ -68,7 +69,6 @@ void sub_events(void *p) __toplevel{ // note most of this setup is taken care of
         printf("Failed to send status %s\r\n",BUS_error_str(resp));
       }
     }
-*/
 // ******************* RECEIVING DATA OVER SPI *************************
 //TODO update this function to save data upon SPI transfer. 
     if(e&SUB_EV_SPI_DAT){
@@ -117,28 +117,24 @@ void sub_events(void *p) __toplevel{ // note most of this setup is taken care of
 
 //handle subsystem specific commands - this is for I2C commands on the BUS that are not SUB events, so system specific commands.
 int COMM_parseCmd(unsigned char src,unsigned char cmd,unsigned char *dat,unsigned short len,unsigned char flags){
-    switch(cmd)
-    {
+    switch(cmd){
     //NOTE is this right?
       case CMD_BEACON_ON_OFF:
-      //If beacon is off it will turn on.
-      if (beacon_on == 0)
-      {
-      beacon_on = 1;
-      }
-      //If beacon is on it will turn off.
-      else if (beacon_on == 1)
-      {
-      beacon_on = 0;
-      }
-      //If not illegal command value.
-      else 
-      {
-      return ERR_ILLEAGLE_COMMAND;
-      }
-      break;
-    default:
-      return ERR_UNKNOWN_CMD;
+        //If beacon is off it will turn on.
+        if (beacon_on == 0){
+        beacon_on = 1;
+        }
+        //If beacon is on it will turn off.
+        else if (beacon_on == 1){
+        beacon_on = 0;
+        }
+        //If not illegal command value.
+        else {
+        return ERR_ILLEAGLE_COMMAND;
+        }
+        break;
+      default:
+        return ERR_UNKNOWN_CMD;
   }
 }
 
@@ -255,11 +251,20 @@ void COMM_events(void *p) __toplevel{
         }
 
         if(!beacon_flag){                                           //SEND HELLO MESSAGE (predefined) if flag is low
+          //NOTE test packet
+            const char TransmitTest[36] = {0x55,0x2F,0x20,0x23,0x0D,0xEB,0x8D,0xD5,0xCB,0x30,0xAE,0x17,0xAC,0xDE,0x6F,0x30,0x0E,0xB9,0xA5,0xA3,0xDA,0x17,0x81,0x6B,0xEF,0xD0,0x62,0x8D,0x12,0x33,0x15,0x34,0x3E,0x8A,0xDF,0x00};
+            printf("Sending Hello Message\r\n");
+            Tx1Buffer_Len=COMM_TXHEADER_LEN+sizeof(TransmitTest);                     //Set length of message
+            for(i=0;i<sizeof(TransmitTest);i++){                 
+            Tx1Buffer[i+COMM_TXHEADER_LEN]=__bit_reverse_char(TransmitTest[i]);     //load message after header
+          }
+
+    /*    if(!beacon_flag){                                           //SEND HELLO MESSAGE (predefined) if flag is low
           printf("Sending Hello Message\r\n");
           Tx1Buffer_Len=COMM_TXHEADER_LEN+sizeof(Packet_WBitshort);                     //Set length of message
           for(i=0;i<sizeof(Packet_WBitshort);i++){                 
             Tx1Buffer[i+COMM_TXHEADER_LEN]=__bit_reverse_char(Packet_WBitshort[i]);     //load message after header
-          }
+          }*/
         } 
         else {                                                      //SEND STATUS MESSAGE from SPI stuff
           Tx1Buffer_Len=COMM_TXHEADER_LEN+(arcBus_stat.spi_stat.len)+1;               //Set length of message: HeaderLen+(arcbusLen)+1 for carriage return
